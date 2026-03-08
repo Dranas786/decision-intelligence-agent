@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from app.rag.embedder import SentenceTransformerEmbedder
+from app.rag.embedder import get_embedder
 from app.rag.ingestion import DocumentIngestor
 from app.rag.retriever import Retriever
 from app.rag.service import RagService
@@ -53,10 +53,8 @@ def get_rag_service() -> RagService:
     global _rag_service
 
     if _rag_service is None:
-        embedder = SentenceTransformerEmbedder()
-        vector_size = embedder.model.get_sentence_embedding_dimension()
-
-        vector_store = _build_vector_store(vector_size)
+        embedder = get_embedder()
+        vector_store = _build_vector_store(embedder.embedding_dimension())
 
         ingestor = DocumentIngestor(
             embedder=embedder,

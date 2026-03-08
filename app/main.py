@@ -60,5 +60,7 @@ def healthz() -> dict[str, str | bool]:
         "status": "ok",
         "frontend": "served_by_backend",
         "groq_configured": bool(os.getenv("GROQ_API_KEY", "").strip()),
+        "embedding_provider": os.getenv("EMBEDDING_PROVIDER", "hash"),
         "qdrant_target": qdrant_target,
     }
+

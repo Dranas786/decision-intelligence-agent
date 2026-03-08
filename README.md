@@ -1,23 +1,30 @@
 # Decision Intelligence Agent
 
-FastAPI demo application for deterministic analytics, retrieval-augmented answers, and pipeline point-cloud inspection.
+FastAPI demo application for deterministic analytics, retrieval-augmented answers, and lightweight pipeline point-cloud inspection.
 
 ## What it does
 
 - Upload a CSV for general, finance, or healthcare analysis.
-- Upload a `PLY`, `PCD`, or `XYZ` point cloud for pipeline dent and ovality inspection.
+- Upload an `XYZ` point cloud for free-tier pipeline dent and ovality inspection.
 - Upload optional `.txt` or `.md` context files for RAG.
 - Store document vectors in Qdrant.
 - Generate a grounded final answer using analytics results plus retrieved document context.
 
-## Hosted demo architecture
+## Free-tier deployment profile
 
-- Frontend: static page served from `/` and configurable to call any hosted API base URL.
+The default deployment is optimized for low-memory hosts.
+
+- Frontend: static page served from `/`.
 - Backend: FastAPI app in `app/main.py`.
-- Analytics orchestration: `app/agent/orchestrator.py`.
-- RAG: chunking, embeddings, Qdrant storage, retrieval, prompt building under `app/rag/`.
+- RAG: uses a lightweight hash-based embedder by default.
+- Vector store: remote Qdrant Cloud via `QDRANT_URL` and `QDRANT_API_KEY`.
 - LLM: Groq when configured, rule-based fallback when not configured.
-- Vector store: remote Qdrant Cloud via `QDRANT_URL` and `QDRANT_API_KEY`, or local persistent storage via `QDRANT_PATH`.
+- Pipeline support on free-tier: `XYZ` uploads work without the optional `open3d` package.
+
+Heavy features are optional extras, not part of the base deploy:
+- `rag-local`: installs `sentence-transformers`
+- `pipeline`: installs `open3d` for `PLY` / `PCD`
+- `advanced-analytics`: installs `prophet` and `pymc`
 
 ## Environment variables
 
@@ -32,14 +39,21 @@ Recommended for hosted API access:
 - `CORS_ALLOWED_ORIGINS=https://your-frontend-domain.com`
 - `PORT=8000`
 
+Recommended for free-tier RAG:
+- `EMBEDDING_PROVIDER=hash`
+- `EMBEDDING_VECTOR_SIZE=384`
+
+Optional for local semantic embeddings:
+- `EMBEDDING_PROVIDER=sentence-transformer`
+- `EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2`
+
 Optional for LLM answers:
 - `GROQ_API_KEY`
 - `GROQ_MODEL`
 - `GROQ_PLANNER_MODEL`
 - `GROQ_ANSWER_MODEL`
 
-Optional for embeddings and local fallback:
-- `EMBEDDING_MODEL_NAME`
+Optional local fallback settings:
 - `QDRANT_PATH`
 - `RAG_ALLOWED_ROOTS`
 
@@ -64,6 +78,26 @@ docker build -t decision-intelligence-agent .
 docker run --env-file .env -p 8000:8000 decision-intelligence-agent
 ```
 
+## Optional heavier installs
+
+If you want local semantic embeddings:
+
+```bash
+pip install .[rag-local]
+```
+
+If you want `PLY` / `PCD` pipeline support:
+
+```bash
+pip install .[pipeline]
+```
+
+If you want the heavier forecasting / Bayesian extras:
+
+```bash
+pip install .[advanced-analytics]
+```
+
 ## Qdrant Cloud setup
 
 1. Create a Qdrant Cloud cluster.
@@ -78,13 +112,15 @@ Example:
 QDRANT_URL=https://YOUR-CLUSTER-ID.cloud.qdrant.io:6333
 QDRANT_API_KEY=YOUR_QDRANT_API_KEY
 QDRANT_COLLECTION_NAME=decision_intelligence_demo
+EMBEDDING_PROVIDER=hash
+EMBEDDING_VECTOR_SIZE=384
 ```
 
 ## Demo flow
 
 1. Open the frontend.
 2. Set the API base URL if the frontend and API are hosted on different domains.
-3. Upload a dataset or point cloud.
+3. Upload a dataset or an `XYZ` point cloud.
 4. Optionally upload `.txt` or `.md` RAG context files.
 5. Ask a question.
 6. Run the analysis and review the final answer plus the structured JSON response.
