@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
+import os
 from typing import Any
+from urllib import request
 
 
 class RuleBasedPlanner:
     """
-    Lightweight planner that selects tools using question keywords, domain, and semantic hints.
+    Fallback planner if the real model is unavailable.
     """
 
     def plan(self, tool_context: dict[str, Any]) -> dict[str, Any]:
@@ -73,11 +76,189 @@ class RuleBasedPlanner:
                     maybe_add("bayesian_ab_test")
 
         if len(plan) <= 1:
-            diagnostics.append("Planner selected only default tools because the question did not strongly match a specialized workflow.")
+            diagnostics.append(
+                "Planner selected only default tools because the question did not strongly match a specialized workflow."
+            )
 
         return {"plan": plan, "diagnostics": diagnostics}
 
+    def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
+        combined_context = payload.get("combined_context", {}) or {}
+        insights = combined_context.get("insights", [])
+        diagnostics = combined_context.get("diagnostics", [])
+
+        fallback_lines: list[str] = []
+        if insights:
+            fallback_lines.append("Key findings:")
+            for item in insights[:5]:
+                fallback_lines.append(f"- {item}")
+        if diagnostics:
+            fallback_lines.append("")
+            fallback_lines.append("Diagnostics:")
+            for item in diagnostics[:3]:
+                fallback_lines.append(f"- {item}")
+
+        if not fallback_lines:
+            fallback_lines.append("Analysis completed, but no model-generated answer was available.")
+
+        return {"answer": "\n".join(fallback_lines)}
 
 
-def get_llm_client() -> RuleBasedPlanner:
-    return RuleBasedPlanner()
+class GroqClient:
+    """
+    Groq OpenAI-compatible client using the chat completions endpoint.
+    """
+
+    def __init__(self) -> None:
+        self.api_key = os.getenv("GROQ_API_KEY", "").strip()
+        self.base_url = (os.getenv("GROQ_BASE_URL") or "https://api.groq.com/openai/v1").rstrip("/")
+        self.planner_model = os.getenv("GROQ_PLANNER_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.1-8b-instant"
+        self.answer_model = os.getenv("GROQ_ANSWER_MODEL") or os.getenv("GROQ_MODEL") or "llama-3.1-8b-instant"
+        self.timeout = int(os.getenv("LLM_TIMEOUT_SECONDS", "120"))
+
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY is not set.")
+
+    def _post_chat(self, payload: dict[str, Any]) -> dict[str, Any]:
+        req = request.Request(
+            url=f"{self.base_url}/chat/completions",
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+            },
+            method="POST",
+        )
+        with request.urlopen(req, timeout=self.timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+
+    def _extract_text(self, response: dict[str, Any]) -> str:
+        choices = response.get("choices", [])
+        if not choices:
+            return ""
+
+        message = choices[0].get("message", {})
+        content = message.get("content", "")
+
+        if isinstance(content, str):
+            return content.strip()
+
+        if isinstance(content, list):
+            parts: list[str] = []
+            for item in content:
+                if isinstance(item, dict) and isinstance(item.get("text"), str):
+                    parts.append(item["text"])
+            return "\n".join(parts).strip()
+
+        return ""
+
+    def plan(self, tool_context: dict[str, Any]) -> dict[str, Any]:
+        available_tools = tool_context.get("available_tools", [])
+        valid_tool_names = {tool.get("name") for tool in available_tools}
+
+        prompt = "\n".join(
+            [
+                "You are the planner for a decision intelligence agent.",
+                "Choose a SHORT ordered list of deterministic tools.",
+                "The Python tools do all real calculations.",
+                "Never invent tool names.",
+                "Prefer validation/profile first when useful, core analysis next, forecasting last if requested.",
+                "Only use tools from the available list.",
+                "Return ONLY valid JSON with keys: plan, diagnostics.",
+                'Each plan item must be an object like {"tool": "...", "args": {...}}.',
+                "",
+                f"Question: {tool_context.get('question', '')}",
+                f"Domain: {tool_context.get('domain', 'general')}",
+                f"Semantic config: {json.dumps(tool_context.get('semantic_config', {}))}",
+                f"Analysis params: {json.dumps(tool_context.get('analysis_params', {}))}",
+                f"Resource summary: {json.dumps(tool_context.get('resource_summary', {}))}",
+                f"Available tools: {json.dumps(available_tools)}",
+            ]
+        )
+
+        response = self._post_chat(
+            {
+                "model": self.planner_model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "Return only compact JSON. Do not include markdown fences or extra explanation.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+                "response_format": {"type": "json_object"},
+            }
+        )
+
+        raw = self._extract_text(response)
+        parsed = json.loads(raw)
+
+        cleaned_plan: list[dict[str, Any]] = []
+        for step in parsed.get("plan", []):
+            tool_name = step.get("tool")
+            if tool_name in valid_tool_names:
+                args = step.get("args", {})
+                cleaned_plan.append(
+                    {
+                        "tool": tool_name,
+                        "args": args if isinstance(args, dict) else {},
+                    }
+                )
+
+        diagnostics = parsed.get("diagnostics", [])
+        if not isinstance(diagnostics, list):
+            diagnostics = []
+
+        return {"plan": cleaned_plan, "diagnostics": diagnostics}
+
+    def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
+        response = self._post_chat(
+            {
+                "model": self.answer_model,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "Write a grounded final answer using only the provided analytics and document context.",
+                    },
+                    {"role": "user", "content": payload.get("prompt", "")},
+                ],
+                "temperature": 0.2,
+            }
+        )
+        return {"answer": self._extract_text(response)}
+
+
+class HybridLLMClient:
+    def __init__(self) -> None:
+        self.fallback = RuleBasedPlanner()
+        self.primary = GroqClient()
+
+    def plan(self, tool_context: dict[str, Any]) -> dict[str, Any]:
+        try:
+            result = self.primary.plan(tool_context)
+            if result.get("plan"):
+                return result
+        except Exception:
+            pass
+        return self.fallback.plan(tool_context)
+
+    def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            result = self.primary.generate(payload)
+            answer = result.get("answer", "")
+            if isinstance(answer, str) and answer.strip():
+                return result
+        except Exception:
+            pass
+        return self.fallback.generate(payload)
+
+
+_llm_client: HybridLLMClient | None = None
+
+
+def get_llm_client() -> HybridLLMClient:
+    global _llm_client
+    if _llm_client is None:
+        _llm_client = HybridLLMClient()
+    return _llm_client

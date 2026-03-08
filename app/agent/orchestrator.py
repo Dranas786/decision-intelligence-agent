@@ -142,6 +142,60 @@ def _build_grounded_answer_input(
 
     return "\n".join(lines)
 
+def _build_analysis_brief(
+    question: str,
+    insights: list[str],
+    insight_objects: list[dict[str, Any]],
+    diagnostics: list[str],
+    retrieved_chunks: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """
+    Build a structured analyst-style decision brief from tool outputs.
+    """
+
+    question_lower = question.lower()
+
+    if any(x in question_lower for x in ["forecast", "predict", "future"]):
+        question_type = "forecasting"
+    elif any(x in question_lower for x in ["anomaly", "outlier", "spike"]):
+        question_type = "anomaly_detection"
+    elif any(x in question_lower for x in ["driver", "cause", "factor"]):
+        question_type = "driver_analysis"
+    else:
+        question_type = "general_analysis"
+
+    key_findings = insights[:5]
+
+    supporting_evidence = insight_objects[:5]
+
+    document_context = [
+        {
+            "document_id": chunk.get("document_id"),
+            "text": chunk.get("text")
+        }
+        for chunk in retrieved_chunks[:3]
+    ]
+
+    risks_or_caveats = diagnostics[:3]
+
+    recommended_next_steps = []
+
+    if question_type == "forecasting":
+        recommended_next_steps.append("Validate forecast assumptions and monitor future observations.")
+    if question_type == "anomaly_detection":
+        recommended_next_steps.append("Investigate root causes of detected anomalies.")
+    if retrieved_chunks:
+        recommended_next_steps.append("Review referenced documentation to confirm policy implications.")
+
+    return {
+        "question": question,
+        "question_type": question_type,
+        "key_findings": key_findings,
+        "supporting_evidence": supporting_evidence,
+        "document_context": document_context,
+        "risks_or_caveats": risks_or_caveats,
+        "recommended_next_steps": recommended_next_steps,
+    }
 
 def run_agent(
     dataset_path: str,
@@ -270,6 +324,14 @@ def run_agent(
         "rag_used": use_rag,
     }
 
+    analysis_brief = _build_analysis_brief(
+    question=question,
+    insights=insights,
+    insight_objects=insight_objects,
+    diagnostics=diagnostics,
+    retrieved_chunks=retrieved_chunks,
+)
+
     grounded_answer_input = _build_grounded_answer_input(
         question=question,
         domain=resolved_domain,
@@ -281,12 +343,13 @@ def run_agent(
         retrieved_chunks=retrieved_chunks[:rag_limit],  # keep retrieval size bounded
     )
 
+    combined_context["analysis_brief"] = analysis_brief
+
     final_answer = build_final_answer(
         question=question,
         grounded_answer_input=grounded_answer_input,
         combined_context=combined_context,
     )
-
     return {
         "plan": [step["tool"] for step in plan],
         "executed_tools": executed_tools,
@@ -300,4 +363,5 @@ def run_agent(
         "combined_context": combined_context,
         "grounded_answer_input": grounded_answer_input,
         "final_answer": final_answer,
+        "analysis_brief": analysis_brief,
     }
