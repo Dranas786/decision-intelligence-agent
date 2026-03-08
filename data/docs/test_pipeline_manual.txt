@@ -1,0 +1,7 @@
+Pipeline dent severity guide.
+
+Minor dents are inward deformations less than 2 percent of the pipe radius.
+
+Moderate dents are between 2 and 5 percent deformation.
+
+Severe dents exceed 5 percent deformation and require engineering review.

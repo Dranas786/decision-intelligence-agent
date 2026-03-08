@@ -17,12 +17,22 @@ class AnalyzeRequest(BaseModel):
     semantic_config: dict[str, Any] = Field(default_factory=dict)
     tool_whitelist: list[str] | None = None
     analysis_params: dict[str, Any] = Field(default_factory=dict)
+    use_rag: bool = False
+    rag_limit: int = 3
 
 
 class ExecutedTool(BaseModel):
     tool: str
     status: str
     args: dict[str, Any] = Field(default_factory=dict)
+
+
+class RetrievedChunkResponse(BaseModel):
+    chunk_id: str
+    document_id: str
+    text: str
+    score: float
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class AnalyzeResponse(BaseModel):
@@ -32,6 +42,12 @@ class AnalyzeResponse(BaseModel):
     insight_objects: list[dict[str, Any]]
     diagnostics: list[str]
     charts: list[dict[str, Any]] = Field(default_factory=list)
+    rag_used: bool = False
+    retrieved_chunks: list[RetrievedChunkResponse] = Field(default_factory=list)
+    rag_prompt: str | None = None
+    combined_context: dict[str, Any] = Field(default_factory=dict)
+    grounded_answer_input: str | None = None
+    final_answer: str | None = None
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)
@@ -45,6 +61,8 @@ def analyze(request: AnalyzeRequest):
             semantic_config=request.semantic_config,
             tool_whitelist=request.tool_whitelist,
             analysis_params=request.analysis_params,
+            use_rag=request.use_rag,
+            rag_limit=request.rag_limit,
         )
         return result
     except ValueError as e:

@@ -6,15 +6,14 @@ from fastapi.testclient import TestClient
 
 from app.agent.orchestrator import run_agent
 from app.main import app
+from app.rag.factory import get_rag_service
 
 
 client = TestClient(app)
 
 
-
 def write_xyz(path: Path, points: np.ndarray) -> None:
     np.savetxt(path, points, fmt="%.6f")
-
 
 
 def make_pipe_points(radius: float = 1.0, length: float = 8.0, dent_depth: float = 0.0, ovality: float = 0.0) -> np.ndarray:
@@ -28,7 +27,6 @@ def make_pipe_points(radius: float = 1.0, length: float = 8.0, dent_depth: float
                 local_radius -= dent_depth
             rows.append([axial, local_radius * np.cos(angle), local_radius * np.sin(angle)])
     return np.asarray(rows, dtype=float)
-
 
 
 def test_orchestrator_general_flow(tmp_path: Path):
@@ -54,6 +52,45 @@ def test_orchestrator_general_flow(tmp_path: Path):
     assert result["executed_tools"]
     assert result["insight_objects"]
 
+
+def test_orchestrator_with_rag_enabled(tmp_path: Path):
+    dataset_path = tmp_path / "business.csv"
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2026-01-01", periods=6, freq="D"),
+            "revenue": [100, 102, 101, 130, 129, 131],
+            "channel": ["paid", "paid", "organic", "email", "email", "email"],
+        }
+    ).to_csv(dataset_path, index=False)
+
+    doc_path = tmp_path / "inspection_manual.txt"
+    doc_path.write_text(
+        "Pipeline dent classification guide:\n"
+        "Minor dents are below 2 percent.\n"
+        "Moderate dents are between 2 percent and 5 percent.\n"
+        "Severe dents are above 5 percent and require engineering review.\n",
+        encoding="utf-8",
+    )
+
+    rag_service = get_rag_service()
+    ingest_result = rag_service.ingest_file(str(doc_path))
+    assert ingest_result.chunk_count > 0
+
+    result = run_agent(
+        dataset_path=str(dataset_path),
+        question="What dents require engineering review?",
+        domain="general",
+        semantic_config={"time_col": "date", "primary_metric": "revenue", "dimensions": ["channel"]},
+        use_rag=True,
+        rag_limit=3,
+    )
+
+    assert result["rag_used"] is True
+    assert "retrieved_chunks" in result
+    assert "rag_prompt" in result
+    assert result["rag_prompt"] is not None
+    assert result["retrieved_chunks"]
+    assert any("engineering review" in chunk["text"].lower() for chunk in result["retrieved_chunks"])
 
 
 def test_orchestrator_finance_healthcare_and_pipeline_domains(tmp_path: Path):
@@ -123,7 +160,6 @@ def test_orchestrator_finance_healthcare_and_pipeline_domains(tmp_path: Path):
     assert any(step["tool"] == "detect_pipe_dents" for step in pipeline_result["executed_tools"])
 
 
-
 def test_api_contract_and_invalid_inputs(tmp_path: Path):
     dataset_path = tmp_path / "api.csv"
     pd.DataFrame(
@@ -188,3 +224,46 @@ def test_api_contract_and_invalid_inputs(tmp_path: Path):
     invalid_payload = invalid_hint_response.json()
     assert any("stable axis" in item.lower() or "axis hint" in item.lower() for item in invalid_payload["diagnostics"])
     assert all(tool not in {"profile_table", "validate_dataset"} for tool in invalid_payload["plan"])
+
+
+def test_api_analyze_with_rag_enabled(tmp_path: Path):
+    dataset_path = tmp_path / "api_rag.csv"
+    pd.DataFrame(
+        {
+            "date": pd.date_range("2026-01-01", periods=4, freq="D"),
+            "revenue": [10, 12, 11, 20],
+            "channel": ["paid", "paid", "organic", "organic"],
+        }
+    ).to_csv(dataset_path, index=False)
+
+    doc_path = tmp_path / "policy.txt"
+    doc_path.write_text(
+        "Inspection policy manual:\n"
+        "Severe dents are above 5 percent and require engineering review.\n",
+        encoding="utf-8",
+    )
+
+    rag_service = get_rag_service()
+    ingest_result = rag_service.ingest_file(str(doc_path))
+    assert ingest_result.chunk_count > 0
+
+    response = client.post(
+        "/v1/analyze",
+        json={
+            "dataset_path": str(dataset_path),
+            "question": "What dents require engineering review?",
+            "domain": "general",
+            "semantic_config": {"time_col": "date", "primary_metric": "revenue", "dimensions": ["channel"]},
+            "use_rag": True,
+            "rag_limit": 3,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["rag_used"] is True
+    assert "retrieved_chunks" in payload
+    assert "rag_prompt" in payload
+    assert payload["rag_prompt"] is not None
+    assert payload["retrieved_chunks"]
+    assert any("engineering review" in chunk["text"].lower() for chunk in payload["retrieved_chunks"])

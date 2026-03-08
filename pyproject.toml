@@ -15,6 +15,9 @@ dependencies = [
   "pymc>=5.0",
   "prophet>=1.1",
   "scikit-learn>=1.5",
+  "sentence-transformers>=3.0",
+  "qdrant-client>=1.10",
+  "python-multipart>=0.0.9",
 ]
 
 [project.optional-dependencies]

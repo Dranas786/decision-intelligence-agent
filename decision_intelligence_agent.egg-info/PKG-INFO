@@ -1,0 +1,29 @@
+Metadata-Version: 2.4
+Name: decision-intelligence-agent
+Version: 0.3.0
+Summary: AI-driven decision intelligence agent for general, finance, healthcare, and pipeline analytics.
+Requires-Python: >=3.11
+Requires-Dist: fastapi>=0.110
+Requires-Dist: pandas>=2.2
+Requires-Dist: numpy>=1.26
+Requires-Dist: scipy>=1.13
+Requires-Dist: uvicorn>=0.29
+Requires-Dist: duckdb>=1.0
+Requires-Dist: open3d>=0.18
+Requires-Dist: statsmodels>=0.14
+Requires-Dist: pymc>=5.0
+Requires-Dist: prophet>=1.1
+Requires-Dist: scikit-learn>=1.5
+Requires-Dist: sentence-transformers>=3.0
+Requires-Dist: qdrant-client>=1.10
+Requires-Dist: python-multipart>=0.0.9
+Provides-Extra: finance
+Requires-Dist: PyPortfolioOpt>=1.5; extra == "finance"
+Requires-Dist: vectorbt>=0.26; extra == "finance"
+Provides-Extra: healthcare
+Requires-Dist: lifelines>=0.29; extra == "healthcare"
+Requires-Dist: scikit-survival>=0.23; extra == "healthcare"
+Requires-Dist: econml>=0.15; extra == "healthcare"
+Provides-Extra: dev
+Requires-Dist: httpx>=0.27; extra == "dev"
+Requires-Dist: pytest>=8.0; extra == "dev"
