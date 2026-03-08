@@ -302,7 +302,11 @@ def run_agent(
                 for chunk in rag_results
             ]
 
-            rag_prompt = rag_service.build_prompt_for_question(question=question, limit=rag_limit)
+            rag_prompt = rag_service.build_prompt_for_question(
+                question=question,
+                limit=rag_limit,
+                retrieved_chunks=rag_results,
+            )
 
             if not retrieved_chunks:
                 diagnostics.append("RAG was enabled, but no supporting document chunks were retrieved.")

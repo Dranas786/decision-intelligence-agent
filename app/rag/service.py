@@ -43,9 +43,10 @@ class RagService:
         self,
         question: str,
         limit: int = 5,
+        retrieved_chunks: list[RetrievedChunk] | None = None,
     ) -> str:
-        retrieved_chunks = self.retrieve_chunks(question=question, limit=limit)
+        chunks = retrieved_chunks if retrieved_chunks is not None else self.retrieve_chunks(question=question, limit=limit)
         return build_rag_prompt(
             question=question,
-            retrieved_chunks=retrieved_chunks,
+            retrieved_chunks=chunks,
         )

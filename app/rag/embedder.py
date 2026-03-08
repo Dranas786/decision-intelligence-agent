@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -21,7 +22,7 @@ class SentenceTransformerEmbedder:
     Real semantic embedder using a local sentence-transformers model.
     """
 
-    model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    model_name: str = os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
 
     def __post_init__(self) -> None:
         self.model = SentenceTransformer(self.model_name)

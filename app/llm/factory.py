@@ -232,25 +232,30 @@ class GroqClient:
 class HybridLLMClient:
     def __init__(self) -> None:
         self.fallback = RuleBasedPlanner()
-        self.primary = GroqClient()
+        try:
+            self.primary: GroqClient | None = GroqClient()
+        except Exception:
+            self.primary = None
 
     def plan(self, tool_context: dict[str, Any]) -> dict[str, Any]:
-        try:
-            result = self.primary.plan(tool_context)
-            if result.get("plan"):
-                return result
-        except Exception:
-            pass
+        if self.primary is not None:
+            try:
+                result = self.primary.plan(tool_context)
+                if result.get("plan"):
+                    return result
+            except Exception:
+                pass
         return self.fallback.plan(tool_context)
 
     def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
-        try:
-            result = self.primary.generate(payload)
-            answer = result.get("answer", "")
-            if isinstance(answer, str) and answer.strip():
-                return result
-        except Exception:
-            pass
+        if self.primary is not None:
+            try:
+                result = self.primary.generate(payload)
+                answer = result.get("answer", "")
+                if isinstance(answer, str) and answer.strip():
+                    return result
+            except Exception:
+                pass
         return self.fallback.generate(payload)
 
 

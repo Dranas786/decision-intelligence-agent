@@ -17,7 +17,6 @@ def build_final_answer(
     It only turns already-grounded context into a readable final answer.
     """
 
-    llm = get_llm_client()
     combined_context = combined_context or {}
 
     prompt = "\n".join(
@@ -37,25 +36,32 @@ def build_final_answer(
         ]
     )
 
+    llm = None
     try:
-        response = llm.generate(
-            {
-                "question": question,
-                "prompt": prompt,
-                "combined_context": combined_context,
-            }
-        )
-
-        if isinstance(response, dict):
-            answer = response.get("answer") or response.get("text") or response.get("output")
-            if isinstance(answer, str) and answer.strip():
-                return answer.strip()
-
-        if isinstance(response, str) and response.strip():
-            return response.strip()
-
+        llm = get_llm_client()
     except Exception:
-        pass
+        llm = None
+
+    if llm is not None:
+        try:
+            response = llm.generate(
+                {
+                    "question": question,
+                    "prompt": prompt,
+                    "combined_context": combined_context,
+                }
+            )
+
+            if isinstance(response, dict):
+                answer = response.get("answer") or response.get("text") or response.get("output")
+                if isinstance(answer, str) and answer.strip():
+                    return answer.strip()
+
+            if isinstance(response, str) and response.strip():
+                return response.strip()
+
+        except Exception:
+            pass
 
     insights = combined_context.get("insights", [])
     retrieved_chunks = combined_context.get("retrieved_chunks", [])

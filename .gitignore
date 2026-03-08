@@ -1,3 +1,7 @@
 .pytest_cache
 .venv
 .env
+data/demo_uploads/
+data/qdrant/
+__pycache__/
+*.pyc

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 from app.rag.embedder import SentenceTransformerEmbedder
 from app.rag.ingestion import DocumentIngestor
 from app.rag.retriever import Retriever
@@ -10,6 +13,42 @@ from app.rag.vector_store import QdrantVectorStore
 _rag_service: RagService | None = None
 
 
+def _collection_name() -> str:
+    return os.getenv("QDRANT_COLLECTION_NAME", "knowledge_base")
+
+
+def _build_vector_store(vector_size: int) -> QdrantVectorStore:
+    qdrant_url = os.getenv("QDRANT_URL", "").strip() or None
+    qdrant_host = os.getenv("QDRANT_HOST", "").strip() or None
+    qdrant_api_key = os.getenv("QDRANT_API_KEY", "").strip() or None
+    qdrant_port = int(os.getenv("QDRANT_PORT", "6333"))
+    collection_name = _collection_name()
+
+    if qdrant_url:
+        return QdrantVectorStore(
+            collection_name=collection_name,
+            vector_size=vector_size,
+            url=qdrant_url,
+            api_key=qdrant_api_key,
+        )
+
+    if qdrant_host:
+        return QdrantVectorStore(
+            collection_name=collection_name,
+            vector_size=vector_size,
+            host=qdrant_host,
+            port=qdrant_port,
+            api_key=qdrant_api_key,
+        )
+
+    local_path = Path(os.getenv("QDRANT_PATH", "data/qdrant")).resolve()
+    return QdrantVectorStore(
+        collection_name=collection_name,
+        vector_size=vector_size,
+        path=str(local_path),
+    )
+
+
 def get_rag_service() -> RagService:
     global _rag_service
 
@@ -17,10 +56,7 @@ def get_rag_service() -> RagService:
         embedder = SentenceTransformerEmbedder()
         vector_size = embedder.model.get_sentence_embedding_dimension()
 
-        vector_store = QdrantVectorStore(
-            collection_name="knowledge_base",
-            vector_size=vector_size,
-        )
+        vector_store = _build_vector_store(vector_size)
 
         ingestor = DocumentIngestor(
             embedder=embedder,

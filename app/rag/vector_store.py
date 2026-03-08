@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from app.rag.schemas import DocumentChunk, RetrievedChunk
-import uuid
 
 
 @dataclass
@@ -18,12 +19,23 @@ class QdrantVectorStore:
 
     collection_name: str
     vector_size: int
-    host: str = "localhost"
-    port: int = 6333
+    host: str | None = None
+    port: int | None = 6333
+    url: str | None = None
+    api_key: str | None = None
+    path: str | None = None
 
     def __post_init__(self) -> None:
-        # self.client = QdrantClient(host=self.host, port=self.port)  # docker 
-        self.client = QdrantClient(":memory:") # local machine
+        if self.path:
+            storage_path = Path(self.path)
+            storage_path.mkdir(parents=True, exist_ok=True)
+            self.client = QdrantClient(path=str(storage_path))
+        elif self.url:
+            self.client = QdrantClient(url=self.url, api_key=self.api_key)
+        elif self.host:
+            self.client = QdrantClient(host=self.host, port=self.port or 6333, api_key=self.api_key)
+        else:
+            raise ValueError("QdrantVectorStore requires either path, url, or host configuration.")
         self._ensure_collection()
 
     def _point_id(self, chunk_id: str) -> str:

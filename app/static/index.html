@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Decision Intelligence Agent Demo</title>
+    <style>
+      :root {
+        --bg: #f5f3ef;
+        --card: #fffdf8;
+        --border: #d5cec4;
+        --text: #201a16;
+        --muted: #6b625a;
+        --accent: #0b6e4f;
+        --accent-soft: #dff3eb;
+        --danger: #9f2a2a;
+      }
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: radial-gradient(circle at top, #fff7e8 0%, var(--bg) 45%, #ece7de 100%);
+        color: var(--text);
+      }
+      main {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 20px 48px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2.3rem;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      .lead {
+        color: var(--muted);
+        max-width: 760px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 18px;
+        margin-top: 22px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 12px 32px rgba(35, 28, 21, 0.08);
+      }
+      .status-pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+      label {
+        display: block;
+        font-weight: 700;
+        margin-top: 12px;
+        margin-bottom: 6px;
+      }
+      input,
+      textarea,
+      select,
+      button {
+        width: 100%;
+        padding: 10px 12px;
+        box-sizing: border-box;
+        font-size: 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: white;
+      }
+      textarea {
+        min-height: 110px;
+        font-family: Consolas, "SFMono-Regular", monospace;
+      }
+      button {
+        margin-top: 16px;
+        background: var(--accent);
+        border: none;
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text);
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+      .actions button {
+        margin-top: 14px;
+      }
+      pre {
+        background: #f7f3ec;
+        padding: 14px;
+        border-radius: 12px;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        margin: 0;
+      }
+      .small {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .error {
+        color: var(--danger);
+      }
+      @media (max-width: 760px) {
+        h1 {
+          font-size: 1.9rem;
+        }
+        .actions {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <span class="status-pill">Hosted Demo Ready</span>
+      <h1>Decision Intelligence Agent</h1>
+      <p class="lead">
+        Use the same frontend for local or hosted deployments. Point it at your API, upload a tabular dataset or a pipeline scan,
+        add optional RAG context files, and run the end-to-end demo.
+      </p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Connection</h2>
+          <label for="apiBaseUrl">API base URL</label>
+          <input id="apiBaseUrl" placeholder="Leave blank to use the current site origin" />
+          <p class="small">Example: https://your-demo-api.onrender.com</p>
+          <div class="actions">
+            <button id="saveApiBtn" class="secondary" type="button">Save API URL</button>
+            <button id="checkApiBtn" class="secondary" type="button">Check Backend</button>
+          </div>
+          <label>Backend status</label>
+          <pre id="backendStatus">Not checked yet.</pre>
+        </section>
+
+        <section class="card">
+          <h2>Run Analysis</h2>
+          <label for="domain">Domain</label>
+          <select id="domain">
+            <option value="general">general</option>
+            <option value="finance">finance</option>
+            <option value="healthcare">healthcare</option>
+            <option value="pipeline">pipeline</option>
+          </select>
+
+          <label for="datasetFile">Dataset file</label>
+          <input id="datasetFile" type="file" accept=".csv" />
+          <p id="datasetHelp" class="small">Use a CSV file for tabular domains.</p>
+
+          <label for="contextFiles">Context files (.txt, .md)</label>
+          <input id="contextFiles" type="file" accept=".txt,.md" multiple />
+
+          <label for="question">Question</label>
+          <textarea id="question" placeholder="Example: Find anomalies, identify the main driver, and forecast revenue."></textarea>
+
+          <label for="semanticConfig">Semantic config JSON</label>
+          <textarea id="semanticConfig"></textarea>
+
+          <label for="analysisParams">Analysis params JSON</label>
+          <textarea id="analysisParams">{}</textarea>
+
+          <button id="runBtn" type="button">Run analysis</button>
+        </section>
+      </div>
+
+      <div class="grid">
+        <section class="card">
+          <h2>Final Answer</h2>
+          <pre id="finalAnswer">No result yet.</pre>
+        </section>
+
+        <section class="card">
+          <h2>Run Summary</h2>
+          <pre id="summary"></pre>
+        </section>
+      </div>
+
+      <section class="card">
+        <h2>Full JSON Response</h2>
+        <pre id="jsonOutput"></pre>
+      </section>
+    </main>
+
+    <script>
+      const API_BASE_STORAGE_KEY = "decision-intelligence-api-base";
+      const domainDefaults = {
+        general: '{"time_col":"date","primary_metric":"revenue","dimensions":["channel"]}',
+        finance: '{"time_col":"date","entity_col":"ticker","price_col":"close","volume_col":"volume"}',
+        healthcare: '{"patient_id_col":"patient_id","admission_date_col":"admission_date","discharge_date_col":"discharge_date","outcome_col":"outcome"}',
+        pipeline: '{"units":"mm","axis_hint":[1,0,0],"expected_radius":250.0,"voxel_size":1.0}',
+      };
+
+      const domainHelp = {
+        general: {
+          accept: ".csv",
+          text: "Use a CSV file for tabular domains.",
+          question: "Example: Find anomalies, identify the main driver, and forecast revenue.",
+        },
+        finance: {
+          accept: ".csv",
+          text: "Use a CSV with time, price, entity, and optionally benchmark or signal columns.",
+          question: "Example: Calculate returns, risk, drawdown, and unusual volume spikes.",
+        },
+        healthcare: {
+          accept: ".csv",
+          text: "Use a CSV with patient, admission, discharge, cohort, and outcome fields.",
+          question: "Example: Compare cohorts, measure readmissions, and analyze length of stay.",
+        },
+        pipeline: {
+          accept: ".ply,.pcd,.xyz,.xyzn,.xyzrgb",
+          text: "Use a point-cloud scan for one pipe section in PLY, PCD, or XYZ-style format.",
+          question: "Example: Detect dents and deformation, compute the deviation map, and measure ovality.",
+        },
+      };
+
+      function normalizedApiBase() {
+        const configured = document.getElementById("apiBaseUrl").value.trim();
+        return (configured || window.location.origin).replace(/\/$/, "");
+      }
+
+      function apiUrl(path) {
+        return `${normalizedApiBase()}${path}`;
+      }
+
+      function persistApiBase() {
+        localStorage.setItem(API_BASE_STORAGE_KEY, document.getElementById("apiBaseUrl").value.trim());
+      }
+
+      function restoreApiBase() {
+        document.getElementById("apiBaseUrl").value = localStorage.getItem(API_BASE_STORAGE_KEY) || "";
+      }
+
+      function updateFormForDomain() {
+        const domain = document.getElementById("domain").value;
+        const datasetFile = document.getElementById("datasetFile");
+        const datasetHelp = document.getElementById("datasetHelp");
+        const question = document.getElementById("question");
+        const semanticConfig = document.getElementById("semanticConfig");
+        const help = domainHelp[domain] || domainHelp.general;
+
+        datasetFile.setAttribute("accept", help.accept);
+        datasetHelp.textContent = help.text;
+        question.placeholder = help.question;
+
+        if (!semanticConfig.value.trim() || semanticConfig.datasetDomain !== domain) {
+          semanticConfig.value = domainDefaults[domain] || "{}";
+          semanticConfig.datasetDomain = domain;
+        }
+      }
+
+      async function checkBackend() {
+        const backendStatus = document.getElementById("backendStatus");
+        backendStatus.classList.remove("error");
+        backendStatus.textContent = `Checking ${apiUrl("/healthz")}...`;
+        try {
+          const response = await fetch(apiUrl("/healthz"));
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.detail || "Health check failed.");
+          }
+          backendStatus.textContent = JSON.stringify(payload, null, 2);
+        } catch (error) {
+          backendStatus.textContent = `Error: ${error.message}`;
+          backendStatus.classList.add("error");
+        }
+      }
+
+      async function runDemo() {
+        const datasetFile = document.getElementById("datasetFile").files[0];
+        const contextFiles = document.getElementById("contextFiles").files;
+        const question = document.getElementById("question").value.trim();
+        const domain = document.getElementById("domain").value;
+        const semanticConfig = document.getElementById("semanticConfig").value.trim();
+        const analysisParams = document.getElementById("analysisParams").value.trim();
+
+        if (!datasetFile) {
+          alert("Please upload a dataset file.");
+          return;
+        }
+
+        if (!question) {
+          alert("Please enter a question.");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("dataset_file", datasetFile);
+        formData.append("question", question);
+        formData.append("domain", domain);
+        formData.append("table_name", "data");
+        formData.append("use_rag", "true");
+        formData.append("rag_limit", "3");
+        formData.append("semantic_config_json", semanticConfig || "{}");
+        formData.append("analysis_params_json", analysisParams || "{}");
+
+        for (const file of contextFiles) {
+          formData.append("context_files", file);
+        }
+
+        document.getElementById("finalAnswer").textContent = "Running...";
+        document.getElementById("summary").textContent = "";
+        document.getElementById("jsonOutput").textContent = "";
+
+        try {
+          const response = await fetch(apiUrl("/v1/demo/analyze-upload"), {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.detail || "Request failed.");
+          }
+
+          document.getElementById("finalAnswer").textContent = data.final_answer || "No final answer returned.";
+          document.getElementById("summary").textContent = JSON.stringify(
+            {
+              api_base_url: normalizedApiBase(),
+              plan: data.plan,
+              executed_tools: data.executed_tools,
+              insights: data.insights,
+              diagnostics: data.diagnostics,
+              retrieved_chunks: data.retrieved_chunks?.map((chunk) => ({
+                document_id: chunk.document_id,
+                score: chunk.score,
+                text_preview: chunk.text?.slice(0, 200),
+              })),
+              demo_run: data.demo_run,
+            },
+            null,
+            2,
+          );
+          document.getElementById("jsonOutput").textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          document.getElementById("finalAnswer").textContent = `Error: ${error.message}`;
+        }
+      }
+
+      document.getElementById("domain").addEventListener("change", updateFormForDomain);
+      document.getElementById("saveApiBtn").addEventListener("click", () => {
+        persistApiBase();
+        checkBackend();
+      });
+      document.getElementById("checkApiBtn").addEventListener("click", checkBackend);
+      document.getElementById("runBtn").addEventListener("click", runDemo);
+
+      restoreApiBase();
+      updateFormForDomain();
+      checkBackend();
+    </script>
+  </body>
+</html>
+

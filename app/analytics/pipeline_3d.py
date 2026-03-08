@@ -71,7 +71,7 @@ def load_point_cloud(dataset_path: str) -> PointCloudData:
         raise FileNotFoundError(f"Dataset not found: {dataset_path}")
 
     suffix = path.suffix.lower()
-    if suffix in {".xyz", ".txt"}:
+    if suffix in {".xyz", ".xyzn", ".xyzrgb"}:
         raw = np.loadtxt(path)
         if raw.ndim == 1:
             raw = raw.reshape(1, -1)
@@ -92,7 +92,7 @@ def load_point_cloud(dataset_path: str) -> PointCloudData:
             raise ValueError(f"Point cloud '{dataset_path}' contains no points.")
         return PointCloudData(points=points, normals=normals, metadata={"format": suffix}, source_path=str(path))
 
-    raise ValueError("Unsupported point-cloud file type. Use PLY, PCD, or XYZ.")
+    raise ValueError("Unsupported point-cloud file type. Use PLY, PCD, XYZ, XYZN, or XYZRGB.")
 
 
 
@@ -599,3 +599,4 @@ def _severity_for_depth(depth: float, radius: float, severity_bands: dict[str, f
         if ratio < threshold:
             break
     return severity
+

@@ -267,3 +267,63 @@ def test_api_analyze_with_rag_enabled(tmp_path: Path):
     assert payload["rag_prompt"] is not None
     assert payload["retrieved_chunks"]
     assert any("engineering review" in chunk["text"].lower() for chunk in payload["retrieved_chunks"])
+
+def test_root_and_healthz_endpoints():
+    root_response = client.get("/")
+    assert root_response.status_code == 200
+    assert "text/html" in root_response.headers.get("content-type", "")
+
+    health_response = client.get("/healthz")
+    assert health_response.status_code == 200
+    payload = health_response.json()
+    assert payload["status"] == "ok"
+    assert "qdrant_target" in payload
+
+
+
+def test_demo_upload_pipeline_flow(tmp_path: Path):
+    pipeline_path = tmp_path / "pipe.xyz"
+    write_xyz(pipeline_path, make_pipe_points(dent_depth=0.08))
+
+    context_path = tmp_path / "notes.txt"
+    context_path.write_text("Pipeline dents should be flagged for engineering review.", encoding="utf-8")
+
+    with pipeline_path.open("rb") as dataset_handle, context_path.open("rb") as context_handle:
+        response = client.post(
+            "/v1/demo/analyze-upload",
+            data={
+                "question": "Find dents and measure ovality",
+                "domain": "pipeline",
+                "semantic_config_json": '{"units":"m","voxel_size":0.03}',
+                "analysis_params_json": '{"deviation_threshold":0.04,"min_cluster_points":10,"slice_spacing":0.4}',
+            },
+            files=[
+                ("dataset_file", ("pipe.xyz", dataset_handle, "text/plain")),
+                ("context_files", ("notes.txt", context_handle, "text/plain")),
+            ],
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["demo_run"]["dataset_kind"] == "point_cloud"
+    assert "profile_point_cloud" in payload["plan"]
+    assert any(step["tool"] == "detect_pipe_dents" for step in payload["executed_tools"])
+
+
+
+def test_demo_upload_rejects_mismatched_pipeline_file(tmp_path: Path):
+    bad_path = tmp_path / "pipe.csv"
+    bad_path.write_text("x,y,z\n1,2,3\n", encoding="utf-8")
+
+    with bad_path.open("rb") as dataset_handle:
+        response = client.post(
+            "/v1/demo/analyze-upload",
+            data={
+                "question": "Inspect this pipeline",
+                "domain": "pipeline",
+            },
+            files=[("dataset_file", ("pipe.csv", dataset_handle, "text/csv"))],
+        )
+
+    assert response.status_code == 400
+    assert "Expected one of" in response.json()["detail"]
