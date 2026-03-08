@@ -10,9 +10,13 @@ FastAPI demo application for deterministic analytics, retrieval-augmented answer
 - Store document vectors in Qdrant.
 - Generate a grounded final answer using analytics results plus retrieved document context.
 
-## Free-tier deployment profile
+## Deployment profiles
 
-The default deployment is optimized for low-memory hosts.
+The repo now supports two explicit profiles driven by `APP_PROFILE`.
+
+### `hosted_free`
+
+This is the default profile for low-memory hosts.
 
 - Frontend: static page served from `/`.
 - Backend: FastAPI app in `app/main.py`.
@@ -21,43 +25,83 @@ The default deployment is optimized for low-memory hosts.
 - LLM: Groq when configured, rule-based fallback when not configured.
 - Pipeline support on free-tier: `XYZ` uploads work without the optional `open3d` package.
 
+### `local_full`
+
+This profile is for your local machine when you want the better demo setup.
+
+- Installs the heavier extras.
+- Uses local semantic embeddings by default.
+- Keeps `open3d` available for richer pipeline work.
+- Uses the same frontend and backend structure, just with more capabilities enabled.
+
 Heavy features are optional extras, not part of the base deploy:
 - `rag-local`: installs `sentence-transformers`
 - `pipeline`: installs `open3d` for `PLY` / `PCD`
 - `advanced-analytics`: installs `prophet` and `pymc`
 
-## Environment variables
+## Environment files
 
-Copy `.env.example` to `.env` and set the values you need.
+- [.env.example](C:/Users/drana/Desktop/Projects/Main_practice_folder/decision-intelligence-agent/.env.example) is the hosted free template.
+- [.env.local.example](C:/Users/drana/Desktop/Projects/Main_practice_folder/decision-intelligence-agent/.env.local.example) is the local full template.
 
-Required for hosted Qdrant:
-- `QDRANT_URL`
-- `QDRANT_API_KEY`
-- `QDRANT_COLLECTION_NAME`
+## Local full setup
 
-Recommended for hosted API access:
-- `CORS_ALLOWED_ORIGINS=https://your-frontend-domain.com`
-- `PORT=8000`
+Use the bootstrap scripts when you want the full local profile with `open3d`, semantic embeddings, and heavier analytics extras.
 
-Recommended for free-tier RAG:
-- `EMBEDDING_PROVIDER=hash`
-- `EMBEDDING_VECTOR_SIZE=384`
+```powershell
+.\scripts\setup_local.ps1
+.\scripts\run_local.ps1
+```
 
-Optional for local semantic embeddings:
-- `EMBEDDING_PROVIDER=sentence-transformer`
-- `EMBEDDING_MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2`
+What the setup script does:
+- copies `.env.local.example` to `.env` if needed
+- creates `.venv`
+- upgrades `pip`
+- installs `.[pipeline,rag-local,advanced-analytics,finance,healthcare]`
 
-Optional for LLM answers:
-- `GROQ_API_KEY`
-- `GROQ_MODEL`
-- `GROQ_PLANNER_MODEL`
-- `GROQ_ANSWER_MODEL`
+What the run script does:
+- loads variables from `.env`
+- starts `uvicorn app.main:app --reload`
 
-Optional local fallback settings:
-- `QDRANT_PATH`
-- `RAG_ALLOWED_ROOTS`
+## Hosted free setup
 
-## Local run
+Use `.env.example` values on your host.
+
+Recommended hosted free env values:
+
+```env
+APP_PROFILE=hosted_free
+PORT=8000
+CORS_ALLOWED_ORIGINS=*
+EMBEDDING_PROVIDER=hash
+EMBEDDING_VECTOR_SIZE=384
+QDRANT_URL=https://YOUR-CLUSTER-ID.cloud.qdrant.io:6333
+QDRANT_API_KEY=YOUR_QDRANT_API_KEY
+QDRANT_COLLECTION_NAME=decision_intelligence_demo
+GROQ_API_KEY=YOUR_GROQ_API_KEY
+```
+
+## Optional heavier installs
+
+If you want local semantic embeddings only:
+
+```bash
+pip install .[rag-local]
+```
+
+If you want `PLY` / `PCD` pipeline support:
+
+```bash
+pip install .[pipeline]
+```
+
+If you want the heavier forecasting / Bayesian extras:
+
+```bash
+pip install .[advanced-analytics]
+```
+
+## Minimal local run
 
 ```bash
 pip install .
@@ -76,26 +120,6 @@ Build and run:
 ```bash
 docker build -t decision-intelligence-agent .
 docker run --env-file .env -p 8000:8000 decision-intelligence-agent
-```
-
-## Optional heavier installs
-
-If you want local semantic embeddings:
-
-```bash
-pip install .[rag-local]
-```
-
-If you want `PLY` / `PCD` pipeline support:
-
-```bash
-pip install .[pipeline]
-```
-
-If you want the heavier forecasting / Bayesian extras:
-
-```bash
-pip install .[advanced-analytics]
 ```
 
 ## Qdrant Cloud setup

@@ -7,6 +7,8 @@ from typing import Protocol
 import numpy as np
 from sklearn.feature_extraction.text import HashingVectorizer
 
+from app.config import profile_default
+
 
 class Embedder(Protocol):
     """
@@ -26,7 +28,12 @@ class HashingTextEmbedder:
     Lightweight deterministic embedder suitable for low-memory deployments.
     """
 
-    vector_size: int = int(os.getenv("EMBEDDING_VECTOR_SIZE", "384"))
+    vector_size: int = int(
+        os.getenv(
+            "EMBEDDING_VECTOR_SIZE",
+            profile_default(hosted_free="384", local_full="384"),
+        )
+    )
     _vectorizer: HashingVectorizer = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
@@ -55,7 +62,10 @@ class SentenceTransformerEmbedder:
     Semantic embedder using a local sentence-transformers model.
     """
 
-    model_name: str = os.getenv("EMBEDDING_MODEL_NAME", "sentence-transformers/all-MiniLM-L6-v2")
+    model_name: str = os.getenv(
+        "EMBEDDING_MODEL_NAME",
+        "sentence-transformers/all-MiniLM-L6-v2",
+    )
 
     def __post_init__(self) -> None:
         try:
@@ -80,7 +90,10 @@ class SentenceTransformerEmbedder:
 
 
 def get_embedder() -> Embedder:
-    provider = os.getenv("EMBEDDING_PROVIDER", "hash").strip().lower()
+    provider = os.getenv(
+        "EMBEDDING_PROVIDER",
+        profile_default(hosted_free="hash", local_full="sentence-transformer"),
+    ).strip().lower()
     if provider in {"sentence-transformer", "sentence_transformer", "sentence-transformers", "st"}:
         try:
             return SentenceTransformerEmbedder()

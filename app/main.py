@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.demo_routes import router as demo_router
 from app.api.routes import router as api_router
+from app.config import app_profile, profile_default
 from app.rag.rag_routes import router as rag_router
 
 
@@ -58,9 +59,10 @@ def healthz() -> dict[str, str | bool]:
     )
     return {
         "status": "ok",
+        "app_profile": app_profile(),
         "frontend": "served_by_backend",
         "groq_configured": bool(os.getenv("GROQ_API_KEY", "").strip()),
-        "embedding_provider": os.getenv("EMBEDDING_PROVIDER", "hash"),
+        "embedding_provider": os.getenv("EMBEDDING_PROVIDER", profile_default(hosted_free="hash", local_full="sentence-transformer")),
         "qdrant_target": qdrant_target,
     }
 
