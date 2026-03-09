@@ -1,0 +1,6 @@
+Pipeline inspection notes
+
+A dent is an inward local deformation relative to the nominal pipe radius.
+Severity should increase with dent depth and affected span.
+Ovality is a broader out-of-round condition and should be measured separately from localized dents.
+When a dent is detected, review its depth, axial length, circumferential width, and fit quality before making a maintenance decision.
