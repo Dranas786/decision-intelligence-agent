@@ -49,6 +49,7 @@ class AnalyzeResponse(BaseModel):
     grounded_answer_input: str | None = None
     final_answer: str | None = None
     analysis_brief: dict[str, Any] = Field(default_factory=dict)
+    explanation_layer: dict[str, Any] = Field(default_factory=dict)
 
 
 @router.post("/analyze", response_model=AnalyzeResponse)

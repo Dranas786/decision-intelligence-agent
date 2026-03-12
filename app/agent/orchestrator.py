@@ -12,11 +12,40 @@ from app.rag.factory import get_rag_service
 SUPPORTED_DOMAINS = {"general", "finance", "healthcare", "pipeline"}
 
 
+TOOL_LABELS = {
+    "validate_dataset": "validated data quality expectations",
+    "profile_table": "profiled the dataset structure and grain",
+    "detect_anomalies": "checked for anomalies and unexpected movement",
+    "segment_drivers": "reviewed segment-level contribution and drivers",
+    "scan_correlations": "screened numeric relationships",
+    "fit_driver_regression": "measured effect sizes with regression",
+    "forecast_metric": "built a forward-looking forecast",
+    "bayesian_ab_test": "evaluated experiment-style uplift",
+    "calculate_returns": "computed return series",
+    "measure_risk": "measured risk and volatility",
+    "measure_drawdown": "measured downside drawdowns",
+    "detect_volume_spikes": "screened for unusual volume",
+    "optimize_portfolio": "generated portfolio weights",
+    "backtest_signal": "backtested a trading signal",
+    "compute_readmission_rate": "measured readmission risk",
+    "compare_cohorts": "compared cohort outcomes",
+    "analyze_length_of_stay": "measured length-of-stay utilization",
+    "survival_risk_analysis": "ran time-to-event analysis",
+    "estimate_treatment_effect": "estimated treatment effect",
+    "profile_point_cloud": "profiled the point-cloud scan",
+    "clean_point_cloud": "cleaned and downsampled the point cloud",
+    "fit_pipe_cylinder": "fit the nominal pipe cylinder",
+    "compute_pipe_deviation_map": "computed the radial deviation map",
+    "detect_pipe_dents": "detected localized dent clusters",
+    "measure_pipe_ovality": "measured ovality across pipe slices",
+}
+
+
 def _append_tool_if_missing(plan: list[dict[str, Any]], tool_name: str, args: dict[str, Any] | None = None) -> None:
-    """Add a tool step only if it is not already present in the plan."""
     if any(step.get("tool") == tool_name for step in plan):
         return
     plan.append({"tool": tool_name, "args": args or {}})
+
 
 
 def _enrich_plan(
@@ -24,10 +53,6 @@ def _enrich_plan(
     question: str,
     domain: str,
 ) -> list[dict[str, Any]]:
-    """
-    Apply simple rule-based corrections so explicit user intent is not missed
-    even if the LLM planner omits an obvious tool.
-    """
     enriched_plan = list(plan)
     q = question.lower()
 
@@ -64,6 +89,90 @@ def _enrich_plan(
     return enriched_plan
 
 
+
+def _tool_action_label(tool_name: str) -> str:
+    return TOOL_LABELS.get(tool_name, tool_name.replace("_", " "))
+
+
+
+def _build_explanation_layer(
+    question: str,
+    domain: str,
+    resource_summary: dict[str, Any],
+    executed_tools: list[dict[str, Any]],
+    insights: list[str],
+    insight_objects: list[dict[str, Any]],
+    diagnostics: list[str],
+) -> dict[str, Any]:
+    methodology = [
+        "Profile the dataset to infer shape, types, grain, and likely keys.",
+        "Validate core quality dimensions: completeness, uniqueness, conformity, consistency, and validity.",
+        "Apply deterministic tools only; the model does not compute or clean data by itself.",
+        "Surface governance notes such as sensitive fields, ambiguous definitions, and low-confidence areas.",
+        "Separate automated actions from items that still require human review.",
+    ]
+
+    actions_taken = [
+        _tool_action_label(step["tool"])
+        for step in executed_tools
+        if step.get("status") == "executed"
+    ]
+
+    profile_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "profile_table"), {})
+    validation_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "validate_dataset"), {})
+
+    governance_notes: list[str] = []
+    human_review_required: list[str] = []
+
+    sensitive_fields = profile_evidence.get("sensitive_fields") or validation_evidence.get("sensitive_fields") or []
+    ambiguous_columns = profile_evidence.get("ambiguous_columns") or []
+    human_review_required.extend(validation_evidence.get("human_review_required") or [])
+
+    if sensitive_fields:
+        governance_notes.append(f"Potentially sensitive fields detected by name pattern: {sensitive_fields}.")
+    if ambiguous_columns:
+        governance_notes.append(f"Some columns may need stronger business definitions: {ambiguous_columns}.")
+    governance_notes.extend(diagnostics[:3])
+
+    dataset_profile = {
+        "resource_kind": resource_summary.get("resource_kind", domain),
+        "row_count": resource_summary.get("row_count"),
+        "columns": resource_summary.get("columns", []),
+        "likely_keys": profile_evidence.get("likely_keys", []),
+        "business_key_candidates": profile_evidence.get("business_key_candidates", []),
+        "grain": profile_evidence.get("grain"),
+    }
+
+    quality_findings = insights[:8]
+
+    if domain == "pipeline":
+        methodology = [
+            "Profile the point cloud before running geometry checks.",
+            "Clean and downsample the scan to stabilize later calculations.",
+            "Fit a nominal cylinder to establish the expected pipe surface.",
+            "Measure deviations from that nominal cylinder to detect dents and ovality.",
+            "Flag fit-quality caveats and measurements that require engineering review.",
+        ]
+        dataset_profile = {
+            "resource_kind": resource_summary.get("resource_kind", "point_cloud"),
+            "point_count": resource_summary.get("point_count"),
+            "bounds": resource_summary.get("bounds"),
+            "has_normals": resource_summary.get("has_normals"),
+        }
+
+    return {
+        "question": question,
+        "domain": domain,
+        "dataset_profile": dataset_profile,
+        "quality_methodology": methodology,
+        "quality_findings": quality_findings,
+        "actions_taken": actions_taken,
+        "governance_notes": list(dict.fromkeys(note for note in governance_notes if note)),
+        "human_review_required": list(dict.fromkeys(note for note in human_review_required if note)),
+    }
+
+
+
 def _build_grounded_answer_input(
     question: str,
     domain: str,
@@ -73,11 +182,8 @@ def _build_grounded_answer_input(
     insight_objects: list[dict[str, Any]],
     diagnostics: list[str],
     retrieved_chunks: list[dict[str, Any]],
+    explanation_layer: dict[str, Any],
 ) -> str:
-    """
-    Build one combined text block that gathers analytics results and RAG evidence
-    into a single grounded answer context for a later summarizer or final answer model.
-    """
     lines: list[str] = []
 
     lines.append("You are preparing a grounded answer based on deterministic analytics results and retrieved documents.")
@@ -115,6 +221,14 @@ def _build_grounded_answer_input(
         lines.append("No structured insight objects were produced.")
     lines.append("")
 
+    lines.append("Explanation layer:")
+    lines.append(f"- Dataset profile: {explanation_layer.get('dataset_profile', {})}")
+    lines.append(f"- Quality methodology: {explanation_layer.get('quality_methodology', [])}")
+    lines.append(f"- Actions taken: {explanation_layer.get('actions_taken', [])}")
+    lines.append(f"- Governance notes: {explanation_layer.get('governance_notes', [])}")
+    lines.append(f"- Human review required: {explanation_layer.get('human_review_required', [])}")
+    lines.append("")
+
     lines.append("Diagnostics:")
     if diagnostics:
         for idx, item in enumerate(diagnostics, start=1):
@@ -138,9 +252,12 @@ def _build_grounded_answer_input(
 
     lines.append("Use the analytics results as the primary source of computed truth.")
     lines.append("Use retrieved document text as supporting business/domain context.")
+    lines.append("Explain what changed, why it matters, what governance concerns remain, and what still needs human review.")
     lines.append("Do not invent calculations that are not present above.")
 
     return "\n".join(lines)
+
+
 
 def _build_analysis_brief(
     question: str,
@@ -148,11 +265,8 @@ def _build_analysis_brief(
     insight_objects: list[dict[str, Any]],
     diagnostics: list[str],
     retrieved_chunks: list[dict[str, Any]],
+    explanation_layer: dict[str, Any],
 ) -> dict[str, Any]:
-    """
-    Build a structured analyst-style decision brief from tool outputs.
-    """
-
     question_lower = question.lower()
 
     if any(x in question_lower for x in ["forecast", "predict", "future"]):
@@ -161,41 +275,31 @@ def _build_analysis_brief(
         question_type = "anomaly_detection"
     elif any(x in question_lower for x in ["driver", "cause", "factor"]):
         question_type = "driver_analysis"
+    elif any(x in question_lower for x in ["quality", "governance", "validity"]):
+        question_type = "data_quality_governance"
     else:
         question_type = "general_analysis"
-
-    key_findings = insights[:5]
-
-    supporting_evidence = insight_objects[:5]
 
     document_context = [
         {
             "document_id": chunk.get("document_id"),
-            "text": chunk.get("text")
+            "text": chunk.get("text"),
         }
         for chunk in retrieved_chunks[:3]
     ]
 
-    risks_or_caveats = diagnostics[:3]
-
-    recommended_next_steps = []
-
-    if question_type == "forecasting":
-        recommended_next_steps.append("Validate forecast assumptions and monitor future observations.")
-    if question_type == "anomaly_detection":
-        recommended_next_steps.append("Investigate root causes of detected anomalies.")
-    if retrieved_chunks:
-        recommended_next_steps.append("Review referenced documentation to confirm policy implications.")
-
     return {
         "question": question,
         "question_type": question_type,
-        "key_findings": key_findings,
-        "supporting_evidence": supporting_evidence,
+        "key_findings": insights[:5],
+        "supporting_evidence": insight_objects[:5],
         "document_context": document_context,
-        "risks_or_caveats": risks_or_caveats,
-        "recommended_next_steps": recommended_next_steps,
+        "risks_or_caveats": diagnostics[:5],
+        "recommended_next_steps": explanation_layer.get("human_review_required", [])[:5],
+        "explanation_layer": explanation_layer,
     }
+
+
 
 def run_agent(
     dataset_path: str,
@@ -208,18 +312,6 @@ def run_agent(
     use_rag: bool = False,
     rag_limit: int = 3,
 ) -> dict[str, Any]:
-    """
-    Main agent workflow:
-    1. Load the analysis resource
-    2. Ask planner for a tool plan
-    3. Enrich the plan with simple intent-based safeguards
-    4. Execute analytics tools from the registry
-    5. Optionally retrieve supporting RAG context
-    6. Build one combined grounded context bundle
-    7. Generate a final grounded answer
-    8. Return structured insights
-    """
-
     semantic_config = semantic_config or {}
     analysis_params = analysis_params or {}
     resolved_domain = domain or "general"
@@ -313,6 +405,16 @@ def run_agent(
         except Exception as exc:
             diagnostics.append(f"RAG retrieval failed: {exc}")
 
+    explanation_layer = _build_explanation_layer(
+        question=question,
+        domain=resolved_domain,
+        resource_summary=resource_summary,
+        executed_tools=executed_tools,
+        insights=insights,
+        insight_objects=insight_objects,
+        diagnostics=diagnostics,
+    )
+
     combined_context = {
         "question": question,
         "domain": resolved_domain,
@@ -326,25 +428,28 @@ def run_agent(
         "diagnostics": diagnostics,
         "retrieved_chunks": retrieved_chunks,
         "rag_used": use_rag,
+        "explanation_layer": explanation_layer,
     }
 
     analysis_brief = _build_analysis_brief(
-    question=question,
-    insights=insights,
-    insight_objects=insight_objects,
-    diagnostics=diagnostics,
-    retrieved_chunks=retrieved_chunks,
-)
+        question=question,
+        insights=insights,
+        insight_objects=insight_objects,
+        diagnostics=diagnostics,
+        retrieved_chunks=retrieved_chunks,
+        explanation_layer=explanation_layer,
+    )
 
     grounded_answer_input = _build_grounded_answer_input(
         question=question,
         domain=resolved_domain,
         resource_summary=resource_summary,
-        executed_tools=executed_tools[:10],   # limit tool history
-        insights=insights[:8],                # limit insights
-        insight_objects=insight_objects[:5],  # limit structured objects
-        diagnostics=diagnostics[:6],          # limit diagnostics
-        retrieved_chunks=retrieved_chunks[:rag_limit],  # keep retrieval size bounded
+        executed_tools=executed_tools[:10],
+        insights=insights[:8],
+        insight_objects=insight_objects[:5],
+        diagnostics=diagnostics[:6],
+        retrieved_chunks=retrieved_chunks[:rag_limit],
+        explanation_layer=explanation_layer,
     )
 
     combined_context["analysis_brief"] = analysis_brief
@@ -368,4 +473,5 @@ def run_agent(
         "grounded_answer_input": grounded_answer_input,
         "final_answer": final_answer,
         "analysis_brief": analysis_brief,
+        "explanation_layer": explanation_layer,
     }

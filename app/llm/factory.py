@@ -84,14 +84,47 @@ class RuleBasedPlanner:
 
     def generate(self, payload: dict[str, Any]) -> dict[str, Any]:
         combined_context = payload.get("combined_context", {}) or {}
+        explanation_layer = combined_context.get("explanation_layer", {}) or {}
         insights = combined_context.get("insights", [])
         diagnostics = combined_context.get("diagnostics", [])
 
         fallback_lines: list[str] = []
-        if insights:
-            fallback_lines.append("Key findings:")
-            for item in insights[:5]:
+
+        dataset_profile = explanation_layer.get("dataset_profile", {})
+        if dataset_profile:
+            fallback_lines.append("Dataset profile:")
+            for key, value in dataset_profile.items():
+                if value not in (None, [], {}):
+                    fallback_lines.append(f"- {key}: {value}")
+
+        quality_findings = explanation_layer.get("quality_findings") or insights[:5]
+        if quality_findings:
+            fallback_lines.append("")
+            fallback_lines.append("Quality issues found:")
+            for item in quality_findings[:5]:
                 fallback_lines.append(f"- {item}")
+
+        actions_taken = explanation_layer.get("actions_taken", [])
+        if actions_taken:
+            fallback_lines.append("")
+            fallback_lines.append("Actions taken:")
+            for item in actions_taken[:5]:
+                fallback_lines.append(f"- {item}")
+
+        governance_notes = explanation_layer.get("governance_notes", [])
+        if governance_notes:
+            fallback_lines.append("")
+            fallback_lines.append("Governance notes:")
+            for item in governance_notes[:5]:
+                fallback_lines.append(f"- {item}")
+
+        human_review_required = explanation_layer.get("human_review_required", [])
+        if human_review_required:
+            fallback_lines.append("")
+            fallback_lines.append("Human review required:")
+            for item in human_review_required[:5]:
+                fallback_lines.append(f"- {item}")
+
         if diagnostics:
             fallback_lines.append("")
             fallback_lines.append("Diagnostics:")
@@ -101,7 +134,7 @@ class RuleBasedPlanner:
         if not fallback_lines:
             fallback_lines.append("Analysis completed, but no model-generated answer was available.")
 
-        return {"answer": "\n".join(fallback_lines)}
+        return {"answer": "\n".join(fallback_lines).strip()}
 
 
 class GroqClient:
