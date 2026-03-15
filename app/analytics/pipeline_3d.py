@@ -63,6 +63,14 @@ class DeviationMap:
     fit_rmse: float
     units: str
 
+    @property
+    def inward_depths(self) -> np.ndarray:
+        return np.clip(-self.deviations, 0.0, None)
+
+    @property
+    def outward_offsets(self) -> np.ndarray:
+        return np.clip(self.deviations, 0.0, None)
+
 
 
 def load_point_cloud(dataset_path: str) -> PointCloudData:
@@ -292,6 +300,7 @@ def compute_pipe_deviation_map(
         "nominal_radius": float(pipe_fit.radius),
         "min_deviation": float(deviations.min()),
         "max_deviation": float(deviations.max()),
+        "max_inward_depth": float(abs(inward.min())) if len(inward) else 0.0,
         "mean_inward_deviation": float(inward.mean()) if len(inward) else 0.0,
         "mean_outward_deviation": float(outward.mean()) if len(outward) else 0.0,
         "fit_rmse": float(pipe_fit.fit_rmse),
@@ -299,7 +308,7 @@ def compute_pipe_deviation_map(
     }
 
     return build_result(
-        insights=[f"Computed deviation map with minimum radial deviation {deviations.min():.4f} {units}."],
+        insights=[f"Computed deviation map with peak inward depth {data['max_inward_depth']:.4f} {units}."],
         insight_objects=[
             build_insight(
                 tool="compute_pipe_deviation_map",
@@ -357,15 +366,28 @@ def detect_pipe_dents(
         axial = deviation_map.axial_positions[global_indices]
         angles = deviation_map.angles[global_indices]
         depth = float(abs(cluster_deviations.min()))
+        angle_span = _angular_span(angles)
+        angle_center = _circular_mean_angle(angles)
+        axial_start = float(axial.min())
+        axial_end = float(axial.max())
+        axial_length = float(axial_end - axial_start)
+        circumferential_width = float(angle_span * deviation_map.nominal_radius)
+        severity = _severity_for_depth(depth, deviation_map.nominal_radius, severity_bands)
         dent = {
             "dent_id": f"dent_{len(dent_records) + 1}",
             "depth": depth,
-            "axial_start": float(axial.min()),
-            "axial_end": float(axial.max()),
-            "axial_length": float(axial.max() - axial.min()),
-            "circumferential_width": float(_angular_span(angles) * deviation_map.nominal_radius),
+            "axial_start": axial_start,
+            "axial_end": axial_end,
+            "axial_center": float(axial.mean()),
+            "axial_length": axial_length,
+            "angle_center_deg": float(np.degrees(angle_center)),
+            "angle_span_deg": float(np.degrees(angle_span)),
+            "circumferential_width": circumferential_width,
+            "affected_area_proxy": float(max(axial_length, 0.0) * max(circumferential_width, 0.0)),
+            "depth_to_radius_ratio": float(depth / max(deviation_map.nominal_radius, 1e-9)),
             "point_count": int(len(global_indices)),
-            "severity": _severity_for_depth(depth, deviation_map.nominal_radius, severity_bands),
+            "severity": severity,
+            "review_priority": _review_priority_for_severity(severity),
             "centroid": coords.mean(axis=0).round(6).tolist(),
             "threshold": float(abs(deviation_threshold)),
             "units": deviation_map.units,
@@ -589,6 +611,12 @@ def _angular_span(angles: np.ndarray) -> float:
     return float((2 * np.pi) - gaps.max())
 
 
+def _circular_mean_angle(angles: np.ndarray) -> float:
+    if len(angles) == 0:
+        return 0.0
+    return float(np.angle(np.mean(np.exp(1j * angles))))
+
+
 
 def _severity_for_depth(depth: float, radius: float, severity_bands: dict[str, float]) -> str:
     ratio = depth / max(radius, 1e-9)
@@ -599,4 +627,12 @@ def _severity_for_depth(depth: float, radius: float, severity_bands: dict[str, f
         if ratio < threshold:
             break
     return severity
+
+
+def _review_priority_for_severity(severity: str) -> str:
+    if severity == 'severe':
+        return 'immediate'
+    if severity == 'moderate':
+        return 'near_term'
+    return 'monitor'
 

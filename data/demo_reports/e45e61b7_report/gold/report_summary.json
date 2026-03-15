@@ -1,0 +1,35 @@
+{
+  "question": "Assess this dataset for quality and prepare it for analytics. Explain the quality issues found, governance risks, schema concerns, freshness concerns, and what requires human review.",
+  "visualization_request": "Build a local bronze/silver/gold pipeline and create a report that emphasizes data quality status, field-level issues, standardization opportunities, governance review items, and a business-facing metric rollup by neighbourhood.",
+  "quality_findings": [
+    "Columns with elevated missingness: {'visit_count': 0.25}.",
+    "Standardization opportunities detected: ['neighbourhood contains label variants that could be standardized.'].",
+    "Conformity issues detected: ['last_update mixes valid and invalid date-like values (33.3% failed parsing).'].",
+    "Validity issues detected: ['visit_count contains negative values in a count-like field (8.3% of rows).'].",
+    "Potential governance-sensitive fields detected: ['store_name', 'owner_email'].",
+    "Dataset validation found duplicate rate 8.3%, completeness score 95.8%, and 0 missing required columns.",
+    "Dataset has 12 rows and 8 columns, duplicate rate 8.3%. Likely keys: ['store_id'].",
+    "One row likely represents a unique store_id record.",
+    "Potentially sensitive fields detected by name pattern: ['store_name', 'owner_email'].",
+    "Schema contract status is review_required. Missing columns: none."
+  ],
+  "governance_notes": [
+    "Potentially sensitive fields detected by name pattern: ['store_name', 'owner_email'].",
+    "Schema version drift is present in schema_version: ['v1', 'v2'].",
+    "Data freshness status is warning with newest record age 4.1062 days.",
+    "Several text fields contain label variants that should be standardized before reporting.",
+    "Provide at least two useful entity columns to evaluate duplicate-entity risk."
+  ],
+  "human_review_required": [
+    "Review schema-version drift before combining records into one reporting layer.",
+    "Confirm whether the dataset is current enough for the intended business use."
+  ],
+  "schema_status": "review_required",
+  "freshness_status": "warning",
+  "artifact_paths": {
+    "bronze": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\e45e61b7_report\\bronze\\coffee_quality_demo.csv",
+    "silver": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\e45e61b7_report\\silver\\silver_records.csv",
+    "quality_events": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\e45e61b7_report\\silver\\quality_events.csv",
+    "gold_database": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\e45e61b7_report\\gold\\local_reporting.db"
+  }
+}

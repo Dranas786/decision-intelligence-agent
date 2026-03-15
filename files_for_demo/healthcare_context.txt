@@ -1,0 +1,5 @@
+Healthcare demo notes
+
+Use patient_id as the entity key, admission_date and discharge_date for utilization, cohort for treatment or control comparison, outcome_score as the outcome metric, duration_days as the survival duration proxy, and event as the event indicator.
+Repeated admissions for the same patient within 30 days should be interpreted as readmission candidates.
+Outcome_score is a simplified outcome field for comparison only and should not be treated as a clinical recommendation.

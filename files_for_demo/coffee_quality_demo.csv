@@ -1,0 +1,13 @@
+store_id,store_name,neighbourhood,median_income,visit_count,last_update,owner_email,schema_version
+ST001,Bean Barn,Downtown,92000,340,2026-03-01,owner@beanbarn.ca,v1
+ST002,Roastery 17,calgary dt,88000,295,03/02/26,contact@roastery17.ca,v1
+ST003,North Roast,North Hill,76000,,2026/03/03,manager@northroast.ca,v1
+ST004,River Roast,Riverside,68000,210,2026-03-04,river@example.ca,v1
+ST004,River Roast,Riverside,68000,210,2026-03-04,river@example.ca,v1
+ST005,Market Cup,West End,71000,-5,2026-03-05,marketcup@example.ca,v1
+ST006,Harbour Brew,harbour,83000,260,bad-date,owner@harbourbrew.ca,v2
+ST007,Harbour Brew,Harbour,83000,,2026-03-07,owner@harbourbrew.ca,v2
+ST008,Bean Barn,downtown,92000,342,2026-03-08,owner@beanbarn.ca,v1
+ST009,South Roast,South Trail,64000,185,2026-13-01,south@example.ca,v1
+ST010,Central Cup,Downtown,90500,,2026-03-10,central@example.ca,v1
+ST011,Campus Coffee,University,57000,198,2026-03-11,,v1

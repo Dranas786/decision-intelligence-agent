@@ -1,0 +1,23 @@
+{
+  "question": "Find dents and deformation in this pipeline scan, compute the deviation map, measure ovality, and explain which findings should be treated as engineering-review items.",
+  "visualization_request": "Build a local bronze/silver/gold pipeline and create a report with a 3D scan view, cross-section view, unwrapped defect map, axial defect profile, ovality profile, dent summary, and a clear engineering review queue.",
+  "pipeline_findings": [
+    "Point cloud has 2160 points with extent [8.0, 2.0, 2.0] mm.",
+    "Cleaned point cloud from 2160 to 49 points.",
+    "Fitted nominal cylinder radius 125.4647 mm with RMSE 124.5361.",
+    "Computed deviation map with minimum radial deviation -124.6057 mm.",
+    "Detected severe dent dent_1 with depth 124.6057 mm.",
+    "Maximum slice ovality is 0.0008 between 1.6198 and 2.6198 mm."
+  ],
+  "human_review_required": [],
+  "artifact_paths": {
+    "bronze": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\bronze\\sample_pipe.xyz",
+    "silver_point_cloud": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\silver\\point_cloud_sample.csv",
+    "silver_deviation_map": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\silver\\deviation_map.csv",
+    "gold_dent_report": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\gold\\dent_report.csv",
+    "gold_ovality_profile": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\gold\\ovality_profile.csv",
+    "gold_heatmap_bins": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\gold\\pipe_heatmap_bins.csv",
+    "gold_axial_profile": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\gold\\pipe_axial_profile.csv",
+    "gold_database": "C:\\Users\\drana\\Desktop\\Projects\\Main_practice_folder\\decision-intelligence-agent\\data\\demo_reports\\c83ff337_report\\gold\\local_reporting.db"
+  }
+}

@@ -1,0 +1,9 @@
+Coffee retail dataset governance notes
+
+1. owner_email is restricted contact information and should not appear in dashboards or broad analyst extracts without masking.
+2. visit_count is a business-critical metric. Negative values are invalid and missing values should be reviewed before they are imputed.
+3. last_update should be standardized to ISO 8601 before downstream reporting.
+4. store_id is the preferred business key. If duplicate rows appear for the same store_id, they should be reviewed for source duplication before publishing.
+5. Differences in neighbourhood spelling, case, or whitespace should be standardized so reporting is consistent.
+6. Rows using a non-dominant schema_version should be reviewed for schema drift before they are merged into trusted reporting layers.
+7. If any value is derived or imputed, it should be traceable and marked for human review.

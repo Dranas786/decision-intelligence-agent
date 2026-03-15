@@ -15,6 +15,10 @@ SUPPORTED_DOMAINS = {"general", "finance", "healthcare", "pipeline"}
 TOOL_LABELS = {
     "validate_dataset": "validated data quality expectations",
     "profile_table": "profiled the dataset structure and grain",
+    "audit_schema_contract": "checked schema contract and version consistency",
+    "assess_freshness": "measured data freshness and recency",
+    "audit_standardization": "screened label variants and standardization opportunities",
+    "detect_entity_collisions": "screened duplicate-entity risk",
     "detect_anomalies": "checked for anomalies and unexpected movement",
     "segment_drivers": "reviewed segment-level contribution and drivers",
     "scan_correlations": "screened numeric relationships",
@@ -40,7 +44,6 @@ TOOL_LABELS = {
     "measure_pipe_ovality": "measured ovality across pipe slices",
 }
 
-
 def _append_tool_if_missing(plan: list[dict[str, Any]], tool_name: str, args: dict[str, Any] | None = None) -> None:
     if any(step.get("tool") == tool_name for step in plan):
         return
@@ -57,6 +60,16 @@ def _enrich_plan(
     q = question.lower()
 
     if domain == "general":
+        quality_request = any(word in q for word in ["quality", "governance", "validity", "prepare", "clean", "standardize", "schema"])
+        duplicate_request = any(word in q for word in ["duplicate", "duplicates", "entity", "deduplicate", "collision"])
+
+        if quality_request:
+            _append_tool_if_missing(enriched_plan, "audit_schema_contract")
+            _append_tool_if_missing(enriched_plan, "audit_standardization")
+            _append_tool_if_missing(enriched_plan, "assess_freshness")
+        if duplicate_request or quality_request:
+            _append_tool_if_missing(enriched_plan, "detect_entity_collisions")
+
         if any(word in q for word in ["anomaly", "anomalies", "outlier", "outliers", "spike", "spikes"]):
             _append_tool_if_missing(enriched_plan, "detect_anomalies")
 
@@ -106,9 +119,9 @@ def _build_explanation_layer(
 ) -> dict[str, Any]:
     methodology = [
         "Profile the dataset to infer shape, types, grain, and likely keys.",
-        "Validate core quality dimensions: completeness, uniqueness, conformity, consistency, and validity.",
+        "Validate core quality dimensions: completeness, uniqueness, conformity, consistency, validity, and freshness.",
         "Apply deterministic tools only; the model does not compute or clean data by itself.",
-        "Surface governance notes such as sensitive fields, ambiguous definitions, and low-confidence areas.",
+        "Surface governance notes such as schema drift, sensitive fields, ambiguous definitions, duplicate-entity risk, and low-confidence areas.",
         "Separate automated actions from items that still require human review.",
     ]
 
@@ -120,6 +133,10 @@ def _build_explanation_layer(
 
     profile_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "profile_table"), {})
     validation_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "validate_dataset"), {})
+    schema_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "audit_schema_contract"), {})
+    freshness_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "assess_freshness"), {})
+    standardization_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "audit_standardization"), {})
+    collision_evidence = next((obj.get("evidence", {}) for obj in insight_objects if obj.get("tool") == "detect_entity_collisions"), {})
 
     governance_notes: list[str] = []
     human_review_required: list[str] = []
@@ -132,6 +149,24 @@ def _build_explanation_layer(
         governance_notes.append(f"Potentially sensitive fields detected by name pattern: {sensitive_fields}.")
     if ambiguous_columns:
         governance_notes.append(f"Some columns may need stronger business definitions: {ambiguous_columns}.")
+    if schema_evidence.get("missing_columns"):
+        governance_notes.append(f"Schema contract is missing columns required for downstream use: {schema_evidence.get('missing_columns')}.")
+        human_review_required.append("Resolve missing schema-contract fields before publishing downstream outputs.")
+    if schema_evidence.get("schema_versions") and len(schema_evidence.get("schema_versions", [])) > 1:
+        governance_notes.append(
+            f"Schema version drift is present in {schema_evidence.get('schema_version_column')}: {schema_evidence.get('schema_versions')}."
+        )
+        human_review_required.append("Review schema-version drift before combining records into one reporting layer.")
+    if freshness_evidence.get("freshness_status") and freshness_evidence.get("freshness_status") != "fresh":
+        governance_notes.append(
+            f"Data freshness status is {freshness_evidence.get('freshness_status')} with newest record age {freshness_evidence.get('freshness_age_days')} days."
+        )
+        human_review_required.append("Confirm whether the dataset is current enough for the intended business use.")
+    if standardization_evidence.get("standardization_candidates"):
+        governance_notes.append("Several text fields contain label variants that should be standardized before reporting.")
+    if collision_evidence.get("collision_candidates"):
+        governance_notes.append("Potential duplicate-entity groups were found and should be reviewed before deduplicating records.")
+        human_review_required.append("Review duplicate-entity candidates before applying entity consolidation rules.")
     governance_notes.extend(diagnostics[:3])
 
     dataset_profile = {
@@ -141,9 +176,11 @@ def _build_explanation_layer(
         "likely_keys": profile_evidence.get("likely_keys", []),
         "business_key_candidates": profile_evidence.get("business_key_candidates", []),
         "grain": profile_evidence.get("grain"),
+        "schema_status": schema_evidence.get("schema_status"),
+        "freshness_status": freshness_evidence.get("freshness_status"),
     }
 
-    quality_findings = insights[:8]
+    quality_findings = insights[:10]
 
     if domain == "pipeline":
         methodology = [
@@ -475,3 +512,9 @@ def run_agent(
         "analysis_brief": analysis_brief,
         "explanation_layer": explanation_layer,
     }
+
+
+
+
+
+

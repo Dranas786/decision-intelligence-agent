@@ -40,6 +40,42 @@ class RuleBasedPlanner:
         else:
             maybe_add("validate_dataset")
             maybe_add("profile_table")
+            maybe_add("audit_schema_contract")
+
+            quality_request = any(
+                keyword in question
+                for keyword in (
+                    "quality",
+                    "governance",
+                    "validity",
+                    "prepare",
+                    "clean",
+                    "standardize",
+                    "schema",
+                )
+            )
+            duplicate_request = any(
+                keyword in question
+                for keyword in (
+                    "duplicate",
+                    "duplicates",
+                    "entity",
+                    "deduplicate",
+                    "collision",
+                )
+            )
+            columns = tool_context.get("columns", []) or []
+            has_time_like_column = any(
+                any(token in str(column).lower() for token in ("date", "time", "updated", "loaded"))
+                for column in columns
+            )
+
+            if quality_request:
+                maybe_add("audit_standardization")
+            if duplicate_request or quality_request:
+                maybe_add("detect_entity_collisions")
+            if quality_request and has_time_like_column:
+                maybe_add("assess_freshness")
 
             if domain == "finance":
                 for tool_name in [
@@ -300,3 +336,4 @@ def get_llm_client() -> HybridLLMClient:
     if _llm_client is None:
         _llm_client = HybridLLMClient()
     return _llm_client
+

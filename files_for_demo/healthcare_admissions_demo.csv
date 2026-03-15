@@ -1,0 +1,13 @@
+patient_id,admission_date,discharge_date,cohort,outcome_score,duration_days,event,treatment,unit
+P001,2026-01-03,2026-01-07,control,72,4,1,0,cardiac
+P001,2026-01-25,2026-01-28,control,65,3,1,0,cardiac
+P002,2026-01-04,2026-01-10,treatment,83,6,1,1,cardiac
+P003,2026-01-06,2026-01-08,control,78,2,0,0,medical
+P004,2026-01-07,2026-01-13,treatment,88,6,1,1,medical
+P005,2026-01-10,2026-01-15,treatment,91,5,0,1,surgical
+P006,2026-01-11,2026-01-20,control,60,9,1,0,surgical
+P007,2026-01-12,2026-01-17,treatment,86,5,0,1,medical
+P008,2026-01-13,2026-01-19,control,69,6,1,0,cardiac
+P009,2026-01-14,2026-01-22,treatment,90,8,0,1,surgical
+P010,2026-01-16,2026-01-21,control,74,5,1,0,medical
+P010,2026-02-05,2026-02-08,control,67,3,1,0,medical

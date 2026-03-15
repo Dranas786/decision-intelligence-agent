@@ -6,177 +6,862 @@
     <title>Decision Intelligence Agent</title>
     <style>
       :root {
-        --bg: #f3efe8;
-        --bg-accent: #ebe4d8;
-        --card: rgba(255, 252, 246, 0.92);
-        --border: #d8cec1;
-        --text: #211912;
-        --muted: #6c6258;
-        --accent: #0c6b52;
-        --accent-soft: #e0f1eb;
-        --ink-soft: #f8f3eb;
-        --danger: #912d2d;
-        --shadow: 0 18px 40px rgba(39, 29, 19, 0.08);
+        --bg: #081019;
+        --bg-elevated: #0f1825;
+        --bg-panel: rgba(13, 22, 34, 0.94);
+        --bg-soft: rgba(21, 33, 49, 0.88);
+        --bg-strong: #111c2a;
+        --border: rgba(167, 189, 214, 0.18);
+        --border-strong: rgba(167, 189, 214, 0.34);
+        --text: #edf3fb;
+        --muted: #96a8bc;
+        --accent: #4dd0a8;
+        --accent-strong: #1ea77f;
+        --accent-soft: rgba(77, 208, 168, 0.12);
+        --blue: #62b0ff;
+        --amber: #f3b25d;
+        --danger: #ef6b73;
+        --ink: #04080f;
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
       body {
         margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
+        min-height: 100vh;
         color: var(--text);
+        font-family: "Segoe UI", "Trebuchet MS", sans-serif;
         background:
-          radial-gradient(circle at top left, #fff7ea 0%, transparent 28%),
-          radial-gradient(circle at top right, #eef7f2 0%, transparent 25%),
-          linear-gradient(180deg, var(--bg) 0%, var(--bg-accent) 100%);
+          radial-gradient(circle at 10% 10%, rgba(77, 208, 168, 0.14), transparent 22%),
+          radial-gradient(circle at 86% 12%, rgba(98, 176, 255, 0.12), transparent 20%),
+          radial-gradient(circle at 50% 100%, rgba(243, 178, 93, 0.08), transparent 25%),
+          linear-gradient(180deg, #04080f 0%, #081019 34%, #09111d 100%);
       }
 
       main {
-        max-width: 1120px;
+        max-width: 1440px;
         margin: 0 auto;
-        padding: 36px 20px 52px;
+        padding: 28px 22px 42px;
       }
 
+      h1, h2, h3, h4 { margin: 0; }
+      p { margin: 0; }
+      button, input, textarea, select { font: inherit; }
+
       .hero {
-        margin-bottom: 20px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+        gap: 22px;
+        align-items: start;
+      }
+
+      .hero-copy {
+        padding: 10px 0 0;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        color: var(--accent);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 700;
       }
 
       h1 {
-        margin: 0;
-        font-size: clamp(2.2rem, 5vw, 3.2rem);
-        line-height: 1;
-        letter-spacing: -0.03em;
+        margin-top: 12px;
+        font-size: clamp(2.8rem, 6vw, 4.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.04em;
       }
 
       .lead {
-        max-width: 720px;
-        margin: 12px 0 0;
+        margin-top: 14px;
+        max-width: 900px;
         color: var(--muted);
-        font-size: 1rem;
+        font-size: 1.04rem;
+        line-height: 1.7;
+      }
+
+      .hero-aside {
+        display: grid;
+        gap: 12px;
+      }
+
+      .summary-card,
+      .surface,
+      .workspace-panel,
+      .desk-report,
+      .modal-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(14px);
+      }
+
+      .summary-card {
+        padding: 18px;
+      }
+
+      .summary-card p {
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .summary-card strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--text);
+      }
+
+      .surface {
+        margin-top: 28px;
+        padding: 22px;
+      }
+
+      .surface-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 20px;
+      }
+
+      .surface-head p {
+        margin-top: 10px;
+        max-width: 820px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .stage-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(98, 176, 255, 0.1);
+        border: 1px solid rgba(98, 176, 255, 0.22);
+        color: #cfe4ff;
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      .workspace-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 22px;
+        margin-top: 22px;
+        align-items: start;
+      }
+
+      .scene-shell {
+        position: relative;
+        top: auto;
+        padding: 20px;
+        min-height: auto;
+        overflow: hidden;
+      }
+
+      .scene-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at top left, rgba(77, 208, 168, 0.08), transparent 22%),
+          radial-gradient(circle at top right, rgba(98, 176, 255, 0.08), transparent 24%),
+          linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+      }
+
+      .scene-title {
+        position: relative;
+        z-index: 2;
+      }
+
+      .scene-title p {
+        margin-top: 10px;
+        color: var(--muted);
         line-height: 1.6;
       }
 
-      .grid {
+      .scene {
+        position: relative;
+        margin-top: 22px;
+        height: 700px;
+        border-radius: 26px;
+        border: 1px solid rgba(255,255,255,0.04);
+        background:
+          radial-gradient(circle at 50% 18%, rgba(98, 176, 255, 0.08), transparent 24%),
+          linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+        overflow: hidden;
+        perspective: 1400px;
+      }
+
+      .scene-floor {
+        position: absolute;
+        left: 50%;
+        bottom: 48px;
+        width: 106%;
+        height: 430px;
+        transform: translateX(-50%) rotateX(72deg);
+        transform-origin: center bottom;
+        border-radius: 44px;
+        background:
+          linear-gradient(90deg, rgba(77, 208, 168, 0.08), rgba(98, 176, 255, 0.08)),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 78px),
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 78px),
+          linear-gradient(180deg, #0b1623 0%, #0e1a28 100%);
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .lane,
+      .lane-marker {
+        display: none;
+      }
+
+      .actor {
+        position: absolute;
+        top: 246px;
+        left: var(--actor-x, 10%);
+        width: 122px;
+        z-index: 4;
+        pointer-events: none;
+        transform: translateX(-50%);
+        transition: left 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .actor-figure {
+        position: relative;
+        height: 142px;
+      }
+
+      .actor-shadow {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 4px;
+        height: 16px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.34);
+        filter: blur(10px);
+      }
+
+      .actor-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.28));
+      }
+
+      .actor-label {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        text-align: center;
+        background: rgba(7, 13, 22, 0.84);
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .actor-label strong { display: block; font-size: 12px; }
+      .actor-label span { color: var(--muted); font-size: 12px; }
+
+      .desk {
+        z-index: 2;
+        position: absolute;
+        width: 186px;
+        padding: 16px 16px 18px;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(20, 33, 50, 0.96), rgba(11, 18, 29, 0.96));
+        border: 1px solid var(--border);
+        transform-style: preserve-3d;
+        transform: rotateX(12deg) rotateY(-12deg);
+        box-shadow: 0 26px 40px rgba(0, 0, 0, 0.28);
+      }
+
+      .desk::after {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: -12px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.32);
+        filter: blur(10px);
+      }
+
+      .desk::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.04);
+        pointer-events: none;
+      }
+
+      .desk.business { left: 4%; top: 356px; }
+      .desk.analyst { left: 26%; top: 164px; }
+      .desk.engineer { left: 52%; top: 238px; }
+      .desk.visualization { left: 74%; top: 128px; }
+
+      .desk-icon {
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.08);
+        font-size: 20px;
+      }
+
+      .desk-topline {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .desk-role {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .desk-status {
+        margin-top: 14px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .desk-note {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+        min-height: 58px;
+      }
+
+      .desk-actions {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .desk-button {
+        appearance: none;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        padding: 10px 12px;
+        border-radius: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .desk-button:hover:not(:disabled) {
+        transform: translateY(-1px);
+        border-color: rgba(255,255,255,0.22);
+        background: rgba(255,255,255,0.08);
+      }
+
+      .desk-button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .desk-button.current,
+      .desk-button.primary {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        color: #042317;
+        border: none;
+        box-shadow: 0 14px 28px rgba(77, 208, 168, 0.18);
+      }
+
+      .desk-button.current:disabled {
+        opacity: 1;
+        color: #042317;
+      }
+
+      .desk.available {
+        cursor: pointer;
+      }
+
+      .desk.available:hover {
+        border-color: rgba(98, 176, 255, 0.18);
+        box-shadow: 0 28px 42px rgba(0, 0, 0, 0.32);
+      }
+
+      .desk.success .desk-icon,
+      .desk.success .desk-button.primary {
+        box-shadow: 0 0 0 1px rgba(77, 208, 168, 0.24), 0 14px 28px rgba(77, 208, 168, 0.16);
+      }
+
+      .desk.pending .desk-icon {
+        box-shadow: 0 0 0 1px rgba(243, 178, 93, 0.22), 0 14px 28px rgba(243, 178, 93, 0.12);
+      }
+
+      .desk.review .desk-icon {
+        box-shadow: 0 0 0 1px rgba(98, 176, 255, 0.22), 0 14px 28px rgba(98, 176, 255, 0.12);
+      }
+
+      .scene-brief {
+        position: absolute;
+        right: 18px;
+        bottom: 18px;
+        width: 290px;
+        padding: 16px;
+        border-radius: 20px;
+        background: rgba(7, 13, 22, 0.76);
+        border: 1px solid rgba(255,255,255,0.08);
+        z-index: 2;
+      }
+
+      .scene-brief h3 { font-size: 1rem; }
+      .scene-brief p {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.55;
+        font-size: 14px;
+      }
+
+      .workspace {
         display: grid;
         gap: 18px;
       }
 
-      .grid-two {
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      .workspace-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
-      .grid-three {
-        margin-top: 18px;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .card {
-        background: var(--card);
+      .nav-pill {
+        padding: 10px 14px;
+        border-radius: 999px;
         border: 1px solid var(--border);
-        border-radius: 18px;
+        background: rgba(255,255,255,0.03);
+        color: var(--muted);
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .nav-pill.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-color: rgba(77,208,168,0.26);
+      }
+
+      .workspace-panel {
+        display: none;
+        padding: 22px;
+      }
+
+      .workspace-panel.active { display: block; }
+
+      .workspace-panel.panel-focus {
+        box-shadow: 0 0 0 1px rgba(98, 176, 255, 0.22), 0 22px 46px rgba(0, 0, 0, 0.22);
+      }
+
+      .workspace-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .workspace-head p {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.6;
+        max-width: 850px;
+      }
+
+      .workspace-kicker {
+        color: var(--accent);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .panel-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .field-card {
         padding: 18px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
       }
 
-      .card h2 {
-        margin: 0 0 12px;
-        font-size: 1.1rem;
-      }
-
-      .card p {
-        margin: 0;
-      }
-
-      .card.compact {
-        padding: 16px;
+      .field-card.full {
+        grid-column: 1 / -1;
       }
 
       label {
         display: block;
-        margin-top: 12px;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
+        font-size: 14px;
         font-weight: 700;
-        font-size: 0.95rem;
       }
 
       input,
       textarea,
-      select,
-      button {
+      select {
         width: 100%;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        padding: 11px 12px;
-        font-size: 14px;
-        background: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        border-radius: 16px;
+        padding: 12px 14px;
+      }
+
+      input[type="file"] {
+        padding: 14px;
       }
 
       textarea {
-        min-height: 110px;
-        font-family: Consolas, "SFMono-Regular", monospace;
+        min-height: 132px;
         resize: vertical;
+        font-family: Consolas, "SFMono-Regular", monospace;
+        line-height: 1.5;
       }
 
-      button {
-        border: none;
-        background: var(--accent);
-        color: white;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 120ms ease, opacity 120ms ease;
-      }
-
-      button:hover {
-        transform: translateY(-1px);
-      }
-
-      button.secondary {
-        background: transparent;
-        color: var(--text);
-        border: 1px solid var(--border);
-      }
-
-      .actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 14px;
-      }
-
-      pre {
-        margin: 0;
-        padding: 14px;
-        border-radius: 14px;
-        background: var(--ink-soft);
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        white-space: pre-wrap;
-        word-break: break-word;
-        overflow-x: auto;
-        font-size: 13px;
-        line-height: 1.55;
-      }
+      select option { color: #081019; }
 
       .small {
         color: var(--muted);
         font-size: 13px;
-        line-height: 1.5;
+        line-height: 1.55;
       }
 
-      .error {
-        color: var(--danger);
+      .panel-actions,
+      .inline-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
       }
 
-      .stack {
+      .panel-actions { margin-top: 18px; }
+      .inline-actions { margin-top: 12px; }
+
+      .primary-btn,
+      .secondary-btn,
+      .ghost-btn,
+      .modal-close,
+      .info-btn {
+        appearance: none;
+        border-radius: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 180ms ease, opacity 180ms ease, border-color 180ms ease, background 180ms ease;
+      }
+
+      .primary-btn,
+      .secondary-btn,
+      .ghost-btn,
+      .modal-close {
+        padding: 12px 16px;
+      }
+
+      .primary-btn {
+        border: none;
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+        color: #042317;
+      }
+
+      .secondary-btn {
+        border: 1px solid rgba(98, 176, 255, 0.24);
+        background: rgba(98, 176, 255, 0.08);
+        color: #d7e9ff;
+      }
+
+      .ghost-btn,
+      .modal-close {
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+      }
+
+      .primary-btn:hover:not(:disabled),
+      .secondary-btn:hover:not(:disabled),
+      .ghost-btn:hover:not(:disabled),
+      .modal-close:hover,
+      .info-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary-btn:disabled,
+      .secondary-btn:disabled,
+      .ghost-btn:disabled {
+        opacity: 0.48;
+        cursor: not-allowed;
+      }
+
+      .sample-box,
+      .status-strip,
+      .desk-report,
+      .viz-note {
+        margin-top: 12px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.04);
+      }
+
+      .status-strip {
+        border-color: rgba(77,208,168,0.18);
+        background: rgba(77,208,168,0.08);
+      }
+
+      .output-card {
+        padding: 18px;
+        border-radius: 20px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+      }
+
+      .output-card h3,
+      .desk-report h4 {
+        margin-bottom: 10px;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: #e5edf7;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-x: auto;
+        line-height: 1.6;
+        font-size: 13px;
+      }
+
+      .desk-report { display: none; }
+      .desk-report.active { display: block; }
+
+      .report-columns {
         display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .viz-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .viz-card {
+        padding: 16px;
+        border-radius: 22px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+      }
+
+      .viz-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .viz-header p {
+        margin-top: 8px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .info-btn {
+        width: 38px;
+        height: 38px;
+        flex: 0 0 auto;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.05);
+        color: var(--text);
+        font-size: 16px;
+      }
+
+      .viz-note {
+        color: #dceaf7;
+      }
+
+      .chart-shell {
+        margin-top: 12px;
+        min-height: 360px;
+        padding: 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.06);
+        background: rgba(4, 8, 15, 0.4);
+      }
+
+      .chart-shell.markdown-shell {
+        min-height: auto;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+        background: rgba(2, 5, 9, 0.76);
+        z-index: 60;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+      }
+
+      .modal-card {
+        width: min(1080px, 100%);
+        max-height: calc(100vh - 56px);
+        overflow: auto;
+        padding: 24px;
+      }
+
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: start;
+      }
+
+      .guide-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+        margin-top: 18px;
+      }
+
+      .guide-section {
+        padding: 18px;
+        border-radius: 20px;
+        background: var(--bg-soft);
+        border: 1px solid var(--border);
+      }
+
+      .guide-section h4 {
+        margin-bottom: 10px;
+      }
+
+      .guide-section ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+
+      .guide-comparison {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 18px;
       }
 
-      @media (max-width: 920px) {
-        .grid-two,
-        .grid-three {
+      .guide-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .guide-pill.good {
+        background: rgba(77,208,168,0.12);
+        color: var(--accent);
+      }
+
+      .guide-pill.concern {
+        background: rgba(239,107,115,0.14);
+        color: #ffb7bc;
+      }
+
+      .hidden { display: none !important; }
+
+      @media (max-width: 1220px) {
+        .workspace-grid,
+        .hero,
+        .guide-grid,
+        .report-columns,
+        .panel-grid,
+        .field-grid,
+        .viz-grid,
+        .guide-comparison {
           grid-template-columns: 1fr;
+        }
+
+        .scene-shell {
+          position: relative;
+          top: auto;
+          min-height: auto;
+        }
+      }
+
+      @media (max-width: 880px) {
+        main {
+          padding: 18px 14px 32px;
+        }
+
+        .scene {
+          height: auto;
+          padding-bottom: 22px;
+        }
+
+        .scene-floor,
+        .lane,
+        .lane-marker,
+        .actor {
+          display: none;
+        }
+
+        .desk {
+        z-index: 2;
+          position: relative;
+          width: auto;
+          left: auto !important;
+          top: auto !important;
+          margin-top: 16px;
+          transform: none;
+        }
+
+        .scene-brief {
+          position: relative;
+          right: auto;
+          bottom: auto;
+          width: auto;
+          margin-top: 18px;
         }
       }
     </style>
@@ -184,135 +869,435 @@
   <body>
     <main>
       <section class="hero">
-        <h1>Decision Intelligence Agent</h1>
-        <p class="lead">
-          Assess data quality, surface governance risks, and explain whether a dataset is ready for downstream analytics.
-        </p>
+        <div class="hero-copy">
+          <span class="eyebrow">Local Demo Workspace</span>
+          <h1>Decision Intelligence Agent</h1>
+          <p class="lead">A darker, staged workspace for a business stakeholder-led review: define the question, send the data to the analyst, approve the engineering layer, and inspect the final visuals in a dedicated visualization studio.</p>
+        </div>
+        <div class="hero-aside">
+          <div class="summary-card">
+            <strong>How to use it</strong>
+            <p>Start in the intake workspace, send the data to the analyst, review the grounded findings, then approve the engineering step to materialize the bronze, silver, and gold layers plus the final visuals.</p>
+          </div>
+          <div class="summary-card">
+            <strong>Interaction model</strong>
+            <p>Each desk becomes actionable only after the previous stage finishes. Click the report buttons on the desks to switch the active workspace below without losing the overall flow.</p>
+          </div>
+        </div>
       </section>
 
-      <div class="grid grid-two">
-        <section class="stack">
-          <section class="card compact">
-            <h2>Connection</h2>
-            <label for="apiBaseUrl">API base URL</label>
-            <input id="apiBaseUrl" placeholder="Leave blank to use the current site origin" />
-            <p class="small">For local use: http://localhost:8000</p>
-            <div class="actions">
-              <button id="saveApiBtn" class="secondary" type="button">Save API URL</button>
-              <button id="checkApiBtn" class="secondary" type="button">Check Backend</button>
+      <section class="surface">
+        <div class="surface-head">
+          <div>
+            <div class="stage-pill" id="stagePill">Stage 1 of 4 � Intake</div>
+            <h2 style="margin-top: 12px;">Business-led data journey</h2>
+            <p id="stageNarrative">The business stakeholder starts with the raw file, frames the question, and decides when each specialist desk should take over.</p>
+          </div>
+        </div>
+
+        <div class="workspace-grid">
+          <aside class="scene-shell summary-card">
+            <div class="scene-title">
+              <span class="eyebrow">Agent Space</span>
+              <p>The stakeholder moves through the room as the workflow advances. Each desk exposes a report action once that stage has actual output to inspect.</p>
             </div>
-            <label>Backend status</label>
-            <pre id="backendStatus">Not checked yet.</pre>
+
+            <div class="scene" id="workflowScene" style="--actor-x: 8%;">
+              <div class="scene-floor"></div>
+
+              <div class="actor" id="businessActor">
+                <div class="actor-figure">
+                  <div class="actor-shadow"></div>
+                  <img class="actor-image" src="https://cdn.jsdelivr.net/npm/openmoji@15.0.0/color/svg/1F9D1-200D-1F4BC.svg" alt="Business shareholder" onerror="this.onerror=null;this.src='/static/assets/business-shareholder-fallback.svg';" />
+                </div>
+                <div class="actor-label">
+                  <strong>Business Shareholder</strong>
+                  <span id="actorCaption">Preparing the intake.</span>
+                </div>
+              </div>
+
+              <section class="desk business review" id="agent-business">
+                <div class="desk-topline">
+                  <div class="desk-icon">B</div>
+                  <div>
+                    <strong>Business Desk</strong>
+                    <div class="desk-role">Question framing and approvals</div>
+                  </div>
+                </div>
+                <div class="desk-status" id="businessStatus">Ready for intake</div>
+                <div class="desk-note" id="businessNote">Upload the dataset, adjust the business question, and hand the case to the analyst.</div>
+                <div class="desk-actions">
+                  <button id="openBusinessDesk" class="desk-button" type="button">Open intake</button>
+                </div>
+              </section>
+
+              <section class="desk analyst idle" id="agent-analyst">
+                <div class="desk-topline">
+                  <div class="desk-icon">A</div>
+                  <div>
+                    <strong>Data Analyst</strong>
+                    <div class="desk-role">Quality, governance, and domain analysis</div>
+                  </div>
+                </div>
+                <div class="desk-status" id="analystStatus">Waiting</div>
+                <div class="desk-note" id="analystNote">This desk becomes actionable once the analyst has completed the deterministic review.</div>
+                <div class="desk-actions">
+                  <button id="openAnalystDesk" class="desk-button" type="button" disabled>Open analyst report</button>
+                </div>
+              </section>
+
+              <section class="desk engineer idle" id="agent-engineer">
+                <div class="desk-topline">
+                  <div class="desk-icon">E</div>
+                  <div>
+                    <strong>Data Engineer</strong>
+                    <div class="desk-role">Bronze, silver, gold, and reporting assets</div>
+                  </div>
+                </div>
+                <div class="desk-status" id="engineerStatus">Waiting</div>
+                <div class="desk-note" id="engineerNote">Approve the engineering step after the analyst review if you want local reporting layers and downstream tables.</div>
+                <div class="desk-actions">
+                  <button id="openEngineerDesk" class="desk-button" type="button" disabled>Open engineering desk</button>
+                </div>
+              </section>
+
+              <section class="desk visualization idle" id="agent-viz">
+                <div class="desk-topline">
+                  <div class="desk-icon">V</div>
+                  <div>
+                    <strong>Visualization Studio</strong>
+                    <div class="desk-role">Final visual evidence</div>
+                  </div>
+                </div>
+                <div class="desk-status" id="vizStatus">Waiting</div>
+                <div class="desk-note" id="vizNote">The studio opens after the engineer finishes the report build and visual payloads are ready.</div>
+                <div class="desk-actions">
+                  <button id="openVizDesk" class="desk-button" type="button" disabled>Open visual studio</button>
+                </div>
+              </section>
+
+              <div class="scene-brief">
+                <h3 id="sceneBriefTitle">Current stage</h3>
+                <p id="sceneBriefText">Prepare the dataset and business question first. The stakeholder is still standing at the intake side of the room.</p>
+              </div>
+            </div>
+          </aside>
+
+          <section class="workspace">
+            <div class="workspace-nav">
+              <button class="nav-pill active" data-panel="businessPanel" type="button">Intake</button>
+              <button class="nav-pill" data-panel="analystPanel" type="button" disabled>Analyst</button>
+              <button class="nav-pill" data-panel="engineerPanel" type="button" disabled>Engineering</button>
+              <button class="nav-pill" data-panel="visualizationPanel" type="button" disabled>Visualization</button>
+            </div>
+
+            <section class="workspace-panel active" id="businessPanel">
+              <div class="workspace-head">
+                <div>
+                  <div class="workspace-kicker">Step 1</div>
+                  <h2 style="margin-top: 8px;">Business intake workspace</h2>
+                  <p>Use this space to define the domain, load either your own dataset or the bundled sample pack, and tell the analyst what decision or diagnostic you want from the data.</p>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <div class="field-card">
+                  <label for="domain">Domain</label>
+                  <select id="domain">
+                    <option value="general">general</option>
+                    <option value="finance">finance</option>
+                    <option value="healthcare">healthcare</option>
+                    <option value="pipeline">pipeline</option>
+                  </select>
+                  <p id="datasetHelp" class="small" style="margin-top: 10px;">Use a CSV file for tabular domains.</p>
+                </div>
+
+                <div class="field-card">
+                  <label for="datasetFile">Dataset file</label>
+                  <input id="datasetFile" type="file" accept=".csv" />
+                  <div class="inline-actions">
+                    <button id="importSampleBtn" class="secondary-btn" type="button">Import sample pack</button>
+                    <button id="clearSampleBtn" class="ghost-btn" type="button">Clear imported sample</button>
+                  </div>
+                  <div id="sampleBox" class="sample-box hidden">
+                    <strong id="sampleTitle">Sample package loaded</strong>
+                    <p id="sampleDescription" class="small" style="margin-top: 8px;"></p>
+                  </div>
+                </div>
+
+                <div class="field-card full">
+                  <label for="contextFiles">Context files (.txt, .md)</label>
+                  <input id="contextFiles" type="file" accept=".txt,.md" multiple />
+                  <p class="small" style="margin-top: 10px;">These optional files are ingested into the local RAG path so the final answer can cite governance or engineering context.</p>
+                </div>
+
+                <div class="field-card full">
+                  <label for="question">What do you want to do with the data?</label>
+                  <textarea id="question" placeholder="Assess this dataset for quality and prepare it for analytics."></textarea>
+                </div>
+
+                <div class="field-card">
+                  <label for="semanticConfig">Semantic config JSON</label>
+                  <textarea id="semanticConfig"></textarea>
+                </div>
+
+                <div class="field-card">
+                  <label for="analysisParams">Analysis params JSON</label>
+                  <textarea id="analysisParams">{}</textarea>
+                </div>
+              </div>
+
+              <div class="status-strip" id="intakeStatus">No analyst request has been sent yet.</div>
+              <div class="panel-actions">
+                <button id="runBtn" class="primary-btn" type="button">Send to analyst</button>
+              </div>
+            </section>
+
+            <section class="workspace-panel" id="analystPanel">
+              <div class="workspace-head">
+                <div>
+                  <div class="workspace-kicker">Step 2</div>
+                  <h2 style="margin-top: 8px;">Analyst findings workspace</h2>
+                  <p>The analyst uses deterministic tools from the backend to profile the dataset, validate quality, pull in relevant context, and produce a grounded answer plus governance explanation.</p>
+                </div>
+              </div>
+
+              <div class="panel-grid">
+                <div class="output-card">
+                  <h3>Final answer</h3>
+                  <pre id="finalAnswer">No result yet.</pre>
+                </div>
+                <div class="output-card">
+                  <h3>Quality and governance explanation</h3>
+                  <pre id="explanationOutput">No explanation layer yet.</pre>
+                </div>
+              </div>
+              <div class="desk-report active" id="analystDeskReport">
+                <h4>What this desk represents</h4>
+                <p class="small">This view is where the business stakeholder inspects what the analyst found before deciding whether the data product should proceed into a local engineering and reporting pipeline.</p>
+              </div>
+            </section>
+
+            <section class="workspace-panel" id="engineerPanel">
+              <div class="workspace-head">
+                <div>
+                  <div class="workspace-kicker">Step 3</div>
+                  <h2 style="margin-top: 8px;">Engineering approval workspace</h2>
+                  <p>Use this stage to tell the local engineering layer what to build. This controls the bronze, silver, and gold outputs, the SQLite reporting database, and the final report structure.</p>
+                </div>
+              </div>
+
+              <div class="field-card full">
+                <label for="visualizationRequest">What should the engineering and reporting layer emphasize?</label>
+                <textarea id="visualizationRequest" placeholder="Example: Build a local bronze/silver/gold pipeline and show a quality dashboard by neighbourhood. For pipeline: show a 3D view, a cross-section, and an unwrapped defect map."></textarea>
+                <div class="panel-actions">
+                  <button id="buildReportBtn" class="primary-btn" type="button" disabled>Build local pipeline + report</button>
+                </div>
+              </div>
+
+              <div class="report-columns">
+                <div class="output-card">
+                  <h3>Artifacts</h3>
+                  <pre id="artifactOutput">No report built yet.</pre>
+                </div>
+                <div class="output-card">
+                  <h3>Tables</h3>
+                  <pre id="tableOutput">No tables yet.</pre>
+                </div>
+                <div class="output-card">
+                  <h3>Report notes</h3>
+                  <pre id="reportOutput">No report yet.</pre>
+                </div>
+              </div>
+            </section>
+
+            <section class="workspace-panel" id="visualizationPanel">
+              <div class="workspace-head">
+                <div>
+                  <div class="workspace-kicker">Step 4</div>
+                  <h2 style="margin-top: 8px;">Visualization studio</h2>
+                  <p>This final workspace renders the engineered visual payloads. Use the info button on any chart to open a real modal guide that explains how to read the visualization, what healthy versus concerning signals look like, and why an engineer or business user should care.</p>
+                </div>
+              </div>
+              <div id="visualizationGrid" class="viz-grid"></div>
+            </section>
           </section>
-
-          <section class="card compact">
-            <h2>Prompting Tip</h2>
-            <p class="small">
-              For the governance demo, try: <strong>Assess this dataset for quality and prepare it for analytics.</strong>
-            </p>
-          </section>
-        </section>
-
-        <section class="card">
-          <h2>Run Analysis</h2>
-          <label for="domain">Domain</label>
-          <select id="domain">
-            <option value="general">general</option>
-            <option value="finance">finance</option>
-            <option value="healthcare">healthcare</option>
-            <option value="pipeline">pipeline</option>
-          </select>
-
-          <label for="datasetFile">Dataset file</label>
-          <input id="datasetFile" type="file" accept=".csv" />
-          <p id="datasetHelp" class="small">Use a CSV file for tabular domains.</p>
-
-          <label for="contextFiles">Context files (.txt, .md)</label>
-          <input id="contextFiles" type="file" accept=".txt,.md" multiple />
-
-          <label for="question">Question</label>
-          <textarea id="question" placeholder="Assess this dataset for quality and prepare it for analytics."></textarea>
-
-          <label for="semanticConfig">Semantic config JSON</label>
-          <textarea id="semanticConfig"></textarea>
-
-          <label for="analysisParams">Analysis params JSON</label>
-          <textarea id="analysisParams">{}</textarea>
-
-          <button id="runBtn" type="button">Run analysis</button>
-        </section>
-      </div>
-
-      <div class="grid grid-three">
-        <section class="card">
-          <h2>Final Answer</h2>
-          <pre id="finalAnswer">No result yet.</pre>
-        </section>
-
-        <section class="card">
-          <h2>Quality &amp; Governance</h2>
-          <pre id="explanationOutput">No explanation layer yet.</pre>
-        </section>
-
-        <section class="card">
-          <h2>Run Summary</h2>
-          <pre id="summary">No run yet.</pre>
-        </section>
-      </div>
-
-      <section class="card" style="margin-top: 18px;">
-        <h2>Full JSON Response</h2>
-        <pre id="jsonOutput">No response yet.</pre>
+        </div>
       </section>
     </main>
 
+    <div id="guideModal" class="modal-backdrop" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <div class="modal-head">
+          <div>
+            <span class="eyebrow">Visualization guide</span>
+            <h2 id="guideTitle" style="margin-top: 10px;">Visualization guide</h2>
+            <p id="guideSummary" class="small" style="margin-top: 10px;"></p>
+          </div>
+          <button id="guideCloseBtn" class="modal-close" type="button">Close</button>
+        </div>
+        <div class="guide-grid">
+          <div style="display: grid; gap: 18px;">
+            <section class="guide-section">
+              <h4>How to read it</h4>
+              <ul id="guideHowToRead"></ul>
+            </section>
+            <section class="guide-section">
+              <h4>What to look for</h4>
+              <ul id="guideLookFor"></ul>
+            </section>
+          </div>
+        </div>
+        <div class="guide-comparison" style="margin-top: 18px;">
+          <section class="guide-section">
+            <span class="guide-pill good">Healthy example</span>
+            <p id="guideHealthy" class="small" style="margin-top: 10px;"></p>
+          </section>
+          <section class="guide-section">
+            <span class="guide-pill concern">Concerning example</span>
+            <p id="guideConcern" class="small" style="margin-top: 10px;"></p>
+          </section>
+        </div>
+        <section class="guide-section" style="margin-top: 18px;">
+          <h4>Why engineering cares</h4>
+          <p id="guideEngineering" class="small"></p>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script>
-      const API_BASE_STORAGE_KEY = "decision-intelligence-api-base";
+      let lastAnalysis = null;
+      let lastRequest = null;
+      let samplePackage = null;
+      let currentGuideViz = null;
+      let currentStage = 0;
+      let currentPanel = "businessPanel";
+
+      const stageConfig = [
+        {
+          pill: "Stage 1 of 4 � Intake",
+          narrative: "The business stakeholder frames the request and prepares the data package.",
+          briefTitle: "Current stage � Intake",
+          briefText: "Prepare the dataset, add optional context, and define what the analyst should investigate.",
+          actorX: "8%",
+          actorCaption: "Preparing the intake.",
+        },
+        {
+          pill: "Stage 2 of 4 � Analyst review",
+          narrative: "The stakeholder has handed the case to the analyst and can now inspect grounded findings.",
+          briefTitle: "Current stage � Analyst review",
+          briefText: "The analyst has the file, runs deterministic tools, and returns quality, governance, and domain findings.",
+          actorX: "29%",
+          actorCaption: "Reviewing analyst findings.",
+        },
+        {
+          pill: "Stage 3 of 4 � Engineering build",
+          narrative: "The stakeholder approves the engineering step so the local bronze, silver, and gold layers can be materialized.",
+          briefTitle: "Current stage � Engineering build",
+          briefText: "The data engineer is now creating local artifacts, tables, and report outputs from the analyst-approved request.",
+          actorX: "55%",
+          actorCaption: "Approving the engineering layer.",
+        },
+        {
+          pill: "Stage 4 of 4 � Visualization studio",
+          narrative: "The stakeholder walks into the visualization studio to inspect the final report and interactive evidence.",
+          briefTitle: "Current stage � Visualization studio",
+          briefText: "Open the chart guides to understand how each visual should be read and what patterns are healthy versus concerning.",
+          actorX: "79%",
+          actorCaption: "Inspecting final visuals.",
+        },
+      ];
+
+      const panelDeskMap = {
+        businessPanel: "business",
+        analystPanel: "analyst",
+        engineerPanel: "engineer",
+        visualizationPanel: "viz",
+      };
+
       const domainDefaults = {
         general: '{"time_col":"date","primary_metric":"revenue","dimensions":["channel"]}',
         finance: '{"time_col":"date","entity_col":"ticker","price_col":"close","volume_col":"volume"}',
         healthcare: '{"patient_id_col":"patient_id","admission_date_col":"admission_date","discharge_date_col":"discharge_date","outcome_col":"outcome"}',
-        pipeline: '{"units":"mm","axis_hint":[1,0,0],"expected_radius":250.0,"voxel_size":1.0}',
+        pipeline: '{"units":"m","voxel_size":0.03}',
       };
 
       const domainHelp = {
-        general: {
-          accept: ".csv",
-          text: "Use a CSV file for tabular domains.",
-          question: "Assess this dataset for quality and prepare it for analytics.",
-        },
-        finance: {
-          accept: ".csv",
-          text: "Use a CSV with time, price, entity, and optionally benchmark or signal columns.",
-          question: "Assess this dataset for quality, then calculate returns, risk, and drawdown.",
-        },
-        healthcare: {
-          accept: ".csv",
-          text: "Use a CSV with patient, admission, discharge, cohort, and outcome fields.",
-          question: "Assess this dataset for quality, compare cohorts, and note governance risks.",
-        },
-        pipeline: {
-          accept: ".ply,.pcd,.xyz,.xyzn,.xyzrgb",
-          text: "Use an XYZ-style point-cloud scan for the local demo. PLY and PCD need the optional pipeline extra.",
-          question: "Find dents and deformation in this pipeline scan, compute the deviation map, and measure ovality.",
-        },
+        general: { accept: ".csv", text: "Use a CSV file for tabular domains, or import the bundled sample pack.", question: "Assess this dataset for quality and prepare it for analytics." },
+        finance: { accept: ".csv", text: "Use a CSV with time, price, entity, and benchmark or signal fields, or import the bundled sample pack.", question: "Assess this dataset for quality, then calculate returns, risk, and drawdown." },
+        healthcare: { accept: ".csv", text: "Use a CSV with patient, admission, discharge, cohort, and outcome fields, or import the bundled sample pack.", question: "Assess this dataset for quality, compare cohorts, and note governance risks." },
+        pipeline: { accept: ".ply,.pcd,.xyz,.xyzn,.xyzrgb", text: "Use an XYZ-style point-cloud scan, or import the bundled multi-defect sample pack for the local demo.", question: "Find dents and deformation in this pipeline scan, compute the deviation map, and measure ovality." },
       };
 
-      function normalizedApiBase() {
-        const configured = document.getElementById("apiBaseUrl").value.trim();
-        return (configured || window.location.origin).replace(/\/$/, "");
-      }
-
       function apiUrl(path) {
-        return `${normalizedApiBase()}${path}`;
+        return `${window.location.origin.replace(/\/$/, "")}${path}`;
       }
 
-      function persistApiBase() {
-        localStorage.setItem(API_BASE_STORAGE_KEY, document.getElementById("apiBaseUrl").value.trim());
+      function updateDeskButtons() {
+        const activeDesk = ["business", "analyst", "engineer", "viz"][currentStage] || "business";
+        const buttonMap = {
+          business: "openBusinessDesk",
+          analyst: "openAnalystDesk",
+          engineer: "openEngineerDesk",
+          viz: "openVizDesk",
+        };
+        Object.entries(buttonMap).forEach(([deskKey, buttonId]) => {
+          const button = document.getElementById(buttonId);
+          button.classList.toggle("current", deskKey === activeDesk);
+        });
       }
 
-      function restoreApiBase() {
-        document.getElementById("apiBaseUrl").value = localStorage.getItem(API_BASE_STORAGE_KEY) || "";
+      function setStage(stageIndex) {
+        currentStage = stageIndex;
+        const stage = stageConfig[stageIndex] || stageConfig[0];
+        document.getElementById("stagePill").textContent = stage.pill;
+        document.getElementById("stageNarrative").textContent = stage.narrative;
+        document.getElementById("sceneBriefTitle").textContent = stage.briefTitle;
+        document.getElementById("sceneBriefText").textContent = stage.briefText;
+        document.getElementById("workflowScene").style.setProperty("--actor-x", stage.actorX);
+        document.getElementById("actorCaption").textContent = stage.actorCaption;
+        updateDeskButtons();
+      }
+
+      function setAgentState(key, state, status, note) {
+        const card = document.getElementById(`agent-${key}`);
+        card.classList.remove("idle", "pending", "success", "review");
+        card.classList.add(state);
+        document.getElementById(`${key}Status`).textContent = status;
+        document.getElementById(`${key}Note`).textContent = note;
+      }
+
+      function setDeskAvailability(panelId, enabled) {
+        const nav = document.querySelector(`.nav-pill[data-panel="${panelId}"]`);
+        if (nav) nav.disabled = !enabled;
+        if (panelId === "analystPanel") document.getElementById("openAnalystDesk").disabled = !enabled;
+        if (panelId === "engineerPanel") document.getElementById("openEngineerDesk").disabled = !enabled;
+        if (panelId === "visualizationPanel") document.getElementById("openVizDesk").disabled = !enabled;
+        const deskIdMap = {
+          analystPanel: "agent-analyst",
+          engineerPanel: "agent-engineer",
+          visualizationPanel: "agent-viz",
+        };
+        const desk = document.getElementById(deskIdMap[panelId]);
+        if (desk) desk.classList.toggle("available", enabled);
+      }
+
+      function activatePanel(panelId, options = {}) {
+        currentPanel = panelId;
+        document.querySelectorAll(".workspace-panel").forEach((panel) => {
+          panel.classList.toggle("active", panel.id === panelId);
+          panel.classList.remove("panel-focus");
+        });
+        document.querySelectorAll(".nav-pill").forEach((pill) => pill.classList.toggle("active", pill.dataset.panel === panelId));
+        const panel = document.getElementById(panelId);
+        panel.classList.add("panel-focus");
+        window.setTimeout(() => panel.classList.remove("panel-focus"), 1200);
+        if (options.scroll !== false) {
+          const workspace = document.querySelector(".workspace");
+          const top = workspace.getBoundingClientRect().top + window.scrollY - 20;
+          window.scrollTo({ top, behavior: "smooth" });
+        }
       }
 
       function updateFormForDomain() {
@@ -322,11 +1307,9 @@
         const question = document.getElementById("question");
         const semanticConfig = document.getElementById("semanticConfig");
         const help = domainHelp[domain] || domainHelp.general;
-
         datasetFile.setAttribute("accept", help.accept);
         datasetHelp.textContent = help.text;
         question.placeholder = help.question;
-
         if (!semanticConfig.value.trim() || semanticConfig.datasetDomain !== domain) {
           semanticConfig.value = domainDefaults[domain] || "{}";
           semanticConfig.datasetDomain = domain;
@@ -335,27 +1318,75 @@
 
       async function parseResponsePayload(response) {
         const contentType = response.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          return await response.json();
-        }
+        if (contentType.includes("application/json")) return await response.json();
         const text = await response.text();
         return { detail: text || `Request failed with status ${response.status}.` };
       }
 
-      function formatList(title, items) {
-        if (!items || !items.length) {
-          return `${title}: none`;
+      function clearSamplePackage() {
+        samplePackage = null;
+        document.getElementById("sampleBox").classList.add("hidden");
+      }
+
+      async function importSamplePackage() {
+        const domain = document.getElementById("domain").value;
+        try {
+          const response = await fetch(apiUrl(`/v1/demo/sample-package/${domain}`));
+          const data = await parseResponsePayload(response);
+          if (!response.ok) throw new Error(data.detail || "Failed to load sample package.");
+          samplePackage = data;
+          document.getElementById("question").value = data.question || "";
+          document.getElementById("semanticConfig").value = JSON.stringify(data.semantic_config || {}, null, 2);
+          document.getElementById("analysisParams").value = JSON.stringify(data.analysis_params || {}, null, 2);
+          document.getElementById("visualizationRequest").value = data.visualization_request || "";
+          document.getElementById("sampleTitle").textContent = `Imported: ${data.label}`;
+          document.getElementById("sampleDescription").textContent = `${data.dataset_name} with ${data.context_files.length} context file(s). ${data.notes}`;
+          document.getElementById("sampleBox").classList.remove("hidden");
+          document.getElementById("intakeStatus").textContent = "A bundled sample package has been loaded into the intake workspace.";
+          setAgentState("business", "review", "Sample pack loaded", "The intake is now pre-filled. You can still adjust the question, configs, or engineering request before sending it to the analyst.");
+        } catch (error) {
+          alert(error.message);
         }
-        return [title + ":", ...items.map((item) => `- ${item}`)].join("\n");
+      }
+      function populateGuideList(elementId, items) {
+        const list = document.getElementById(elementId);
+        list.innerHTML = "";
+        (items || []).forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          list.appendChild(li);
+        });
+      }
+
+      function openGuide(viz) {
+        const guide = viz.guide || {};
+        currentGuideViz = viz;
+        document.getElementById("guideTitle").textContent = viz.title || "Visualization guide";
+        document.getElementById("guideSummary").textContent = guide.summary || viz.description || "";
+        populateGuideList("guideHowToRead", guide.how_to_read || []);
+        populateGuideList("guideLookFor", guide.look_for || []);
+        document.getElementById("guideHealthy").textContent = guide.healthy_example || "";
+        document.getElementById("guideConcern").textContent = guide.concern_example || "";
+        document.getElementById("guideEngineering").textContent = guide.engineering_use || "";
+        const modal = document.getElementById("guideModal");
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeGuide() {
+        currentGuideViz = null;
+        const modal = document.getElementById("guideModal");
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+      }
+
+      function formatList(title, items) {
+        return !items || !items.length ? `${title}: none` : [title + ":", ...items.map((item) => `- ${item}`)].join("\n");
       }
 
       function formatKeyValueSection(title, value) {
-        if (!value || (typeof value === "object" && !Array.isArray(value) && !Object.keys(value).length)) {
-          return `${title}: none`;
-        }
-        if (Array.isArray(value)) {
-          return formatList(title, value);
-        }
+        if (!value || (typeof value === "object" && !Array.isArray(value) && !Object.keys(value).length)) return `${title}: none`;
+        if (Array.isArray(value)) return formatList(title, value);
         const lines = [title + ":"];
         for (const [key, item] of Object.entries(value)) {
           if (item !== null && item !== undefined && !(Array.isArray(item) && !item.length)) {
@@ -366,63 +1397,189 @@
       }
 
       function formatExplanationLayer(layer) {
-        if (!layer || !Object.keys(layer).length) {
-          return "No explanation layer returned.";
-        }
-
+        if (!layer || !Object.keys(layer).length) return "No explanation layer returned.";
         return [
-          formatKeyValueSection("Dataset profile", layer.dataset_profile || {}),
-          "",
-          formatList("Quality methodology", layer.quality_methodology || []),
-          "",
-          formatList("Quality findings", layer.quality_findings || []),
-          "",
-          formatList("Actions taken", layer.actions_taken || []),
-          "",
-          formatList("Governance notes", layer.governance_notes || []),
-          "",
+          formatKeyValueSection("Dataset profile", layer.dataset_profile || {}), "",
+          formatList("Quality methodology", layer.quality_methodology || []), "",
+          formatList("Quality findings", layer.quality_findings || []), "",
+          formatList("Actions taken", layer.actions_taken || []), "",
+          formatList("Governance notes", layer.governance_notes || []), "",
           formatList("Human review required", layer.human_review_required || []),
         ].join("\n");
       }
 
-      function buildSummary(data) {
-        return JSON.stringify(
-          {
-            api_base_url: normalizedApiBase(),
-            plan: data.plan,
-            executed_tools: (data.executed_tools || []).map((tool) => `${tool.tool} [${tool.status}]`),
-            diagnostics: data.diagnostics,
-            human_review_required: data.explanation_layer?.human_review_required || [],
-            retrieved_chunks: data.retrieved_chunks?.map((chunk) => ({
-              document_id: chunk.document_id,
-              score: chunk.score,
-              text_preview: chunk.text?.slice(0, 160),
-            })),
-            demo_run: data.demo_run,
-          },
-          null,
-          2,
-        );
+      function buildArtifactSummary(report) {
+        return JSON.stringify(report.layers || {}, null, 2);
       }
 
-      async function checkBackend() {
-        const backendStatus = document.getElementById("backendStatus");
-        backendStatus.classList.remove("error");
-        backendStatus.textContent = `Checking ${apiUrl("/healthz")}...`;
-        try {
-          const response = await fetch(apiUrl("/healthz"));
-          const payload = await parseResponsePayload(response);
-          if (!response.ok) {
-            throw new Error(payload.detail || "Health check failed.");
-          }
-          backendStatus.textContent = JSON.stringify(payload, null, 2);
-        } catch (error) {
-          backendStatus.textContent = `Error: ${error.message}`;
-          backendStatus.classList.add("error");
+      function renderVisualizations(visualizations) {
+        const grid = document.getElementById("visualizationGrid");
+        grid.innerHTML = "";
+        if (!visualizations || !visualizations.length) {
+          grid.innerHTML = '<div class="viz-card"><h4>No visualizations yet</h4><p class="small" style="margin-top:8px;">Build the report to populate the visualization studio.</p></div>';
+          return;
         }
+
+        visualizations.forEach((viz, index) => {
+          const card = document.createElement("div");
+          card.className = "viz-card";
+
+          const header = document.createElement("div");
+          header.className = "viz-header";
+
+          const titleWrap = document.createElement("div");
+          const title = document.createElement("h4");
+          title.textContent = viz.title || `Visualization ${index + 1}`;
+          const desc = document.createElement("p");
+          desc.textContent = viz.description || "";
+          titleWrap.appendChild(title);
+          titleWrap.appendChild(desc);
+          header.appendChild(titleWrap);
+
+          if (viz.guide) {
+            const infoBtn = document.createElement("button");
+            infoBtn.type = "button";
+            infoBtn.className = "info-btn";
+            infoBtn.textContent = "i";
+            infoBtn.title = "Explain this visualization";
+            infoBtn.addEventListener("click", () => openGuide(viz));
+            header.appendChild(infoBtn);
+          }
+
+          card.appendChild(header);
+
+          if (viz.guide && viz.guide.summary) {
+            const note = document.createElement("div");
+            note.className = "viz-note";
+            note.textContent = viz.guide.summary;
+            card.appendChild(note);
+          }
+
+          const shell = document.createElement("div");
+          shell.className = viz.markdown ? "chart-shell markdown-shell" : "chart-shell";
+          if (viz.markdown) {
+            const pre = document.createElement("pre");
+            pre.textContent = viz.markdown;
+            shell.appendChild(pre);
+          } else if (viz.plotly && window.Plotly) {
+            const plot = document.createElement("div");
+            plot.style.height = viz.id && viz.id.includes("3d") ? "440px" : "380px";
+            shell.appendChild(plot);
+            requestAnimationFrame(() => {
+              const data = JSON.parse(JSON.stringify(viz.plotly.data || []));
+              const layout = JSON.parse(JSON.stringify(viz.plotly.layout || {}));
+              const textColor = "#eef4fb";
+              const themeTitle = (title, color) => {
+                if (!title) return title;
+                if (typeof title === "string") return { text: title, font: { color } };
+                return {
+                  ...title,
+                  font: {
+                    ...(title.font || {}),
+                    color: title.font?.color || color,
+                  },
+                };
+              };
+              const themeColorBar = (colorBar = {}) => ({
+                ...colorBar,
+                tickfont: {
+                  ...(colorBar.tickfont || {}),
+                  color: colorBar.tickfont?.color || "#dce9f7",
+                },
+                title: themeTitle(colorBar.title, "#e9f1fb"),
+                outlinecolor: colorBar.outlinecolor || "rgba(255,255,255,0.12)",
+                x: colorBar.x ?? -0.18,
+                xanchor: colorBar.xanchor || "left",
+                thickness: colorBar.thickness || 14,
+                len: colorBar.len || 0.8,
+              });
+              const themeAxis = (axis = {}) => ({
+                ...axis,
+                color: axis.color || "#d6e4f3",
+                tickfont: {
+                  ...(axis.tickfont || {}),
+                  color: axis.tickfont?.color || "#c7d6e7",
+                },
+                title: themeTitle(axis.title, "#edf3fa"),
+                gridcolor: axis.gridcolor || "rgba(255,255,255,0.09)",
+                zerolinecolor: axis.zerolinecolor || "rgba(255,255,255,0.16)",
+                linecolor: axis.linecolor || "rgba(255,255,255,0.16)",
+              });
+
+              layout.paper_bgcolor = "rgba(0,0,0,0)";
+              layout.plot_bgcolor = "rgba(10,18,29,0.78)";
+              layout.font = {
+                ...(layout.font || {}),
+                color: layout.font?.color || textColor,
+                family: layout.font?.family || "'Space Grotesk', sans-serif",
+              };
+              layout.title = themeTitle(layout.title, textColor);
+              layout.margin = {
+                ...(layout.margin || {}),
+                l: Math.max(layout.margin?.l || 70, 120),
+                r: Math.max(layout.margin?.r || 28, 28),
+                t: Math.max(layout.margin?.t || 56, 56),
+                b: Math.max(layout.margin?.b || 56, 56),
+              };
+              layout.legend = {
+                ...(layout.legend || {}),
+                font: {
+                  ...(layout.legend?.font || {}),
+                  color: layout.legend?.font?.color || textColor,
+                },
+                bgcolor: layout.legend?.bgcolor || "rgba(7,13,22,0.58)",
+                bordercolor: layout.legend?.bordercolor || "rgba(255,255,255,0.08)",
+                x: layout.legend?.x ?? 0.01,
+                y: layout.legend?.y ?? 0.99,
+                xanchor: layout.legend?.xanchor || "left",
+                yanchor: layout.legend?.yanchor || "top",
+              };
+              if (layout.coloraxis) {
+                layout.coloraxis = { ...layout.coloraxis, colorbar: themeColorBar(layout.coloraxis.colorbar || {}) };
+              }
+              if (layout.scene) {
+                layout.scene = {
+                  ...layout.scene,
+                  bgcolor: layout.scene.bgcolor || "rgba(0,0,0,0)",
+                  xaxis: themeAxis(layout.scene.xaxis || {}),
+                  yaxis: themeAxis(layout.scene.yaxis || {}),
+                  zaxis: themeAxis(layout.scene.zaxis || {}),
+                };
+              }
+              layout.annotations = (layout.annotations || []).map((annotation) => ({
+                ...annotation,
+                font: {
+                  ...(annotation.font || {}),
+                  color: annotation.font?.color || textColor,
+                },
+              }));
+              Object.keys(layout).forEach((key) => {
+                if (/^(x|y)axis\d*$/.test(key)) {
+                  layout[key] = themeAxis(layout[key] || {});
+                }
+              });
+              data.forEach((trace) => {
+                if (trace.colorbar) trace.colorbar = themeColorBar(trace.colorbar);
+                if (trace.marker?.colorbar) trace.marker.colorbar = themeColorBar(trace.marker.colorbar);
+                if (trace.line?.colorbar) trace.line.colorbar = themeColorBar(trace.line.colorbar);
+              });
+
+              Plotly.newPlot(plot, data, layout, {
+                responsive: true,
+                displayModeBar: false,
+              });
+            });
+          } else {
+            const pre = document.createElement("pre");
+            pre.textContent = JSON.stringify(viz, null, 2);
+            shell.appendChild(pre);
+          }
+          card.appendChild(shell);
+          grid.appendChild(card);
+        });
       }
 
-      async function runDemo() {
+      async function runAnalysis() {
         const datasetFile = document.getElementById("datasetFile").files[0];
         const contextFiles = document.getElementById("contextFiles").files;
         const question = document.getElementById("question").value.trim();
@@ -430,68 +1587,208 @@
         const semanticConfig = document.getElementById("semanticConfig").value.trim();
         const analysisParams = document.getElementById("analysisParams").value.trim();
 
-        if (!datasetFile) {
-          alert("Please upload a dataset file.");
+        if (!datasetFile && !samplePackage) return alert("Please upload a dataset file or import a sample pack.");
+        if (!question) return alert("Please enter a question.");
+
+        let semanticConfigObj;
+        let analysisParamsObj;
+        try {
+          semanticConfigObj = JSON.parse(semanticConfig || "{}");
+          analysisParamsObj = JSON.parse(analysisParams || "{}");
+        } catch (error) {
+          alert(`Invalid JSON: ${error.message}`);
           return;
         }
 
-        if (!question) {
-          alert("Please enter a question.");
-          return;
-        }
+        lastAnalysis = null;
+        lastRequest = { question, domain, semantic_config: semanticConfigObj, analysis_params: analysisParamsObj };
+        document.getElementById("buildReportBtn").disabled = true;
+        document.getElementById("reportOutput").textContent = "No report yet.";
+        document.getElementById("artifactOutput").textContent = "No report built yet.";
+        document.getElementById("tableOutput").textContent = "No tables yet.";
+        renderVisualizations([]);
+        setDeskAvailability("analystPanel", false);
+        setDeskAvailability("engineerPanel", false);
+        setDeskAvailability("visualizationPanel", false);
 
-        const formData = new FormData();
-        formData.append("dataset_file", datasetFile);
-        formData.append("question", question);
-        formData.append("domain", domain);
-        formData.append("table_name", "data");
-        formData.append("use_rag", "true");
-        formData.append("rag_limit", "3");
-        formData.append("semantic_config_json", semanticConfig || "{}");
-        formData.append("analysis_params_json", analysisParams || "{}");
-
-        for (const file of contextFiles) {
-          formData.append("context_files", file);
-        }
-
-        document.getElementById("finalAnswer").textContent = "Running...";
+        document.getElementById("intakeStatus").textContent = "The analyst is now processing the request.";
+        document.getElementById("finalAnswer").textContent = "Running analyst review...";
         document.getElementById("explanationOutput").textContent = "Building explanation layer...";
-        document.getElementById("summary").textContent = "";
-        document.getElementById("jsonOutput").textContent = "";
+
+        setAgentState("business", "review", "Question captured", "The stakeholder has sent the data package and the question to the analyst desk.");
+        setAgentState("analyst", "pending", "Running analysis", "The analyst is profiling the dataset, validating quality, and selecting deterministic tools.");
+        setAgentState("engineer", "idle", "Waiting", "The engineering desk is blocked until the analyst review is complete and the business user approves a build request.");
+        setAgentState("viz", "idle", "Waiting", "The visualization studio remains locked until engineered visual payloads exist.");
+        setStage(1);
+        activatePanel("analystPanel", { scroll: true });
 
         try {
-          const response = await fetch(apiUrl("/v1/demo/analyze-upload"), {
-            method: "POST",
-            body: formData,
-          });
-          const data = await parseResponsePayload(response);
-
-          if (!response.ok) {
-            throw new Error(data.detail || "Request failed.");
+          let response;
+          if (datasetFile) {
+            const formData = new FormData();
+            formData.append("dataset_file", datasetFile);
+            formData.append("question", question);
+            formData.append("domain", domain);
+            formData.append("table_name", "data");
+            formData.append("use_rag", "true");
+            formData.append("rag_limit", "3");
+            formData.append("semantic_config_json", semanticConfig || "{}");
+            formData.append("analysis_params_json", analysisParams || "{}");
+            for (const file of contextFiles) formData.append("context_files", file);
+            response = await fetch(apiUrl("/v1/demo/analyze-upload"), { method: "POST", body: formData });
+          } else {
+            response = await fetch(apiUrl("/v1/demo/analyze-sample"), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                domain,
+                question,
+                table_name: "data",
+                use_rag: true,
+                rag_limit: 3,
+                semantic_config: semanticConfigObj,
+                analysis_params: analysisParamsObj,
+              }),
+            });
           }
 
+          const data = await parseResponsePayload(response);
+          if (!response.ok) throw new Error(data.detail || "Request failed.");
+          lastAnalysis = data;
           document.getElementById("finalAnswer").textContent = data.final_answer || "No final answer returned.";
           document.getElementById("explanationOutput").textContent = formatExplanationLayer(data.explanation_layer);
-          document.getElementById("summary").textContent = buildSummary(data);
-          document.getElementById("jsonOutput").textContent = JSON.stringify(data, null, 2);
+          document.getElementById("buildReportBtn").disabled = false;
+          document.getElementById("intakeStatus").textContent = "The analyst review is complete. You can now inspect the findings and decide whether to build the engineering layer.";
+          setAgentState("analyst", "success", "Analysis complete", "The analyst has returned grounded findings, governance notes, and human-review requirements.");
+          setAgentState("business", "review", "Review analyst output", "Inspect the analyst report, then decide whether the engineering layer should build the local data product.");
+          setAgentState("engineer", "review", "Awaiting approval", "The engineering desk is ready to build once the stakeholder provides the report objective.");
+          setDeskAvailability("analystPanel", true);
+          setDeskAvailability("engineerPanel", true);
+          activatePanel("analystPanel", { scroll: true });
         } catch (error) {
           document.getElementById("finalAnswer").textContent = `Error: ${error.message}`;
           document.getElementById("explanationOutput").textContent = "No explanation layer available because the request failed.";
-          document.getElementById("summary").textContent = "";
+          document.getElementById("intakeStatus").textContent = "The analyst request failed. Adjust the inputs and try again.";
+          setAgentState("analyst", "review", "Run failed", error.message);
+          activatePanel("businessPanel", { scroll: true });
+          setStage(0);
         }
       }
 
-      document.getElementById("domain").addEventListener("change", updateFormForDomain);
-      document.getElementById("saveApiBtn").addEventListener("click", () => {
-        persistApiBase();
-        checkBackend();
-      });
-      document.getElementById("checkApiBtn").addEventListener("click", checkBackend);
-      document.getElementById("runBtn").addEventListener("click", runDemo);
+      async function buildReport() {
+        if (!lastAnalysis || !lastRequest) return;
+        const visualizationRequest = document.getElementById("visualizationRequest").value.trim();
+        setAgentState("business", "review", "Engineering approved", "The stakeholder has approved the local bronze, silver, and gold build request.");
+        setAgentState("engineer", "pending", "Building pipeline", "The data engineer is materializing artifacts, report tables, and the local reporting database.");
+        setAgentState("viz", "pending", "Preparing studio", "The visualization studio is waiting for engineered chart payloads.");
+        document.getElementById("reportOutput").textContent = "Building local report...";
+        setStage(2);
+        activatePanel("engineerPanel", { scroll: true, forceStage: 2 });
 
-      restoreApiBase();
+        try {
+          const response = await fetch(apiUrl("/v1/demo/build-report"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              dataset_path: lastAnalysis.demo_run.dataset_path,
+              question: lastRequest.question,
+              domain: lastRequest.domain,
+              semantic_config: lastRequest.semantic_config,
+              analysis_params: lastRequest.analysis_params,
+              analysis_result: lastAnalysis,
+              visualization_request: visualizationRequest,
+            }),
+          });
+
+          const report = await parseResponsePayload(response);
+          if (!response.ok) throw new Error(report.detail || "Build report failed.");
+
+          document.getElementById("artifactOutput").textContent = buildArtifactSummary(report);
+          document.getElementById("tableOutput").textContent = JSON.stringify(report.tables || [], null, 2);
+          document.getElementById("reportOutput").textContent = report.report_markdown || "No report markdown returned.";
+          renderVisualizations(report.visualizations || []);
+
+          setAgentState("engineer", "success", "Pipeline built", "The local bronze, silver, gold, and reporting layers are now ready for inspection.");
+          setAgentState("viz", "success", "Visuals ready", "The visualization studio now contains the final charts, explanatory modals, and evidence views.");
+          setDeskAvailability("visualizationPanel", true);
+          activatePanel("visualizationPanel", { scroll: true });
+          setStage(3);
+        } catch (error) {
+          document.getElementById("reportOutput").textContent = `Error: ${error.message}`;
+          setAgentState("engineer", "review", "Build failed", error.message);
+          setAgentState("viz", "review", "Studio blocked", "The visualization studio could not render because the engineering build failed.");
+          activatePanel("engineerPanel", { scroll: true });
+        }
+      }
+
+      document.getElementById("domain").addEventListener("change", () => {
+        updateFormForDomain();
+        clearSamplePackage();
+      });
+
+      document.getElementById("datasetFile").addEventListener("change", () => {
+        if (document.getElementById("datasetFile").files.length) clearSamplePackage();
+        document.getElementById("intakeStatus").textContent = "Dataset attached. Define the business question and send the work to the analyst when ready.";
+        setAgentState("business", "review", "Dataset ready", "The intake desk now has the raw file. Add the question and any context before sending the package onward.");
+      });
+
+      document.getElementById("importSampleBtn").addEventListener("click", importSamplePackage);
+      document.getElementById("clearSampleBtn").addEventListener("click", clearSamplePackage);
+      document.getElementById("runBtn").addEventListener("click", runAnalysis);
+      document.getElementById("buildReportBtn").addEventListener("click", buildReport);
+      document.getElementById("guideCloseBtn").addEventListener("click", closeGuide);
+      document.getElementById("guideModal").addEventListener("click", (event) => {
+        if (event.target.id === "guideModal") closeGuide();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && currentGuideViz) closeGuide();
+      });
+
+      document.getElementById("openBusinessDesk").addEventListener("click", () => activatePanel("businessPanel"));
+      document.getElementById("openAnalystDesk").addEventListener("click", () => activatePanel("analystPanel"));
+      document.getElementById("openEngineerDesk").addEventListener("click", () => activatePanel("engineerPanel"));
+      document.getElementById("openVizDesk").addEventListener("click", () => activatePanel("visualizationPanel"));
+
+      document.getElementById("agent-business").addEventListener("click", () => activatePanel("businessPanel"));
+      document.getElementById("agent-analyst").addEventListener("click", () => {
+        if (!document.getElementById("openAnalystDesk").disabled) activatePanel("analystPanel");
+      });
+      document.getElementById("agent-engineer").addEventListener("click", () => {
+        if (!document.getElementById("openEngineerDesk").disabled) activatePanel("engineerPanel");
+      });
+      document.getElementById("agent-viz").addEventListener("click", () => {
+        if (!document.getElementById("openVizDesk").disabled) activatePanel("visualizationPanel");
+      });
+
+      document.querySelectorAll(".nav-pill").forEach((pill) => {
+        pill.addEventListener("click", () => {
+          if (pill.disabled) return;
+          activatePanel(pill.dataset.panel);
+        });
+      });
+
       updateFormForDomain();
-      checkBackend();
+      setDeskAvailability("analystPanel", false);
+      setDeskAvailability("engineerPanel", false);
+      setDeskAvailability("visualizationPanel", false);
+      renderVisualizations([]);
+      setStage(0);
+      activatePanel("businessPanel", { scroll: false });
     </script>
   </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

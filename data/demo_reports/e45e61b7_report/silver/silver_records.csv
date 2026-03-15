@@ -1,0 +1,13 @@
+record_id,store_id,store_name,neighbourhood,median_income,visit_count,last_update,owner_email,schema_version,dq_duplicate_row,dq_missing_visit_count,dq_negative_visit_count,last_update_parsed,dq_last_update_parse_failed,store_name_normalized,neighbourhood_normalized,dq_review_required,dq_status
+1,ST001,Bean Barn,Downtown,92000,340.0,2026-03-01,owner@beanbarn.ca,v1,False,False,False,2026-03-01,False,Bean Barn,Downtown,False,ready
+2,ST002,Roastery 17,calgary dt,88000,295.0,03/02/26,contact@roastery17.ca,v1,False,False,False,,True,Roastery 17,Calgary Dt,True,review_required
+3,ST003,North Roast,North Hill,76000,,2026/03/03,manager@northroast.ca,v1,False,True,False,,True,North Roast,North Hill,True,review_required
+4,ST004,River Roast,Riverside,68000,210.0,2026-03-04,river@example.ca,v1,False,False,False,2026-03-04,False,River Roast,Riverside,False,ready
+5,ST004,River Roast,Riverside,68000,210.0,2026-03-04,river@example.ca,v1,False,False,False,2026-03-04,False,River Roast,Riverside,False,ready
+6,ST005,Market Cup,West End,71000,-5.0,2026-03-05,marketcup@example.ca,v1,False,False,True,2026-03-05,False,Market Cup,West End,True,review_required
+7,ST006,Harbour Brew,harbour,83000,260.0,bad-date,owner@harbourbrew.ca,v2,False,False,False,,True,Harbour Brew,Harbour,True,review_required
+8,ST007,Harbour Brew,Harbour,83000,,2026-03-07,owner@harbourbrew.ca,v2,False,True,False,2026-03-07,False,Harbour Brew,Harbour,True,review_required
+9,ST008,Bean Barn,downtown,92000,342.0,2026-03-08,owner@beanbarn.ca,v1,False,False,False,2026-03-08,False,Bean Barn,Downtown,False,ready
+10,ST009,South Roast,South Trail,64000,185.0,2026-13-01,south@example.ca,v1,False,False,False,,True,South Roast,South Trail,True,review_required
+11,ST010,Central Cup,Downtown,90500,,2026-03-10,central@example.ca,v1,False,True,False,2026-03-10,False,Central Cup,Downtown,True,review_required
+12,ST011,Campus Coffee,University,57000,198.0,2026-03-11,,v1,False,False,False,2026-03-11,False,Campus Coffee,University,False,ready

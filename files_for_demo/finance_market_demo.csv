@@ -1,0 +1,13 @@
+date,ticker,close,volume,benchmark_close,signal,desk,sector
+2026-01-02,AAA,101.2,120000,4020,1,alpha,industrial
+2026-01-03,AAA,103.1,126000,4035,1,alpha,industrial
+2026-01-04,AAA,102.4,118000,4018,0,alpha,industrial
+2026-01-05,AAA,106.8,188000,4050,1,alpha,industrial
+2026-01-06,AAA,104.5,115000,4044,0,alpha,industrial
+2026-01-07,AAA,107.9,210000,4062,1,alpha,industrial
+2026-01-02,BBB,55.4,98000,4020,0,beta,consumer
+2026-01-03,BBB,56.1,101000,4035,1,beta,consumer
+2026-01-04,BBB,54.9,,4018,0,beta,consumer
+2026-01-05,BBB,57.2,166000,4050,1,beta,consumer
+2026-01-06,BBB,53.8,95000,4044,0,beta,consumer
+2026-01-07,BBB,58.5,225000,4062,1,beta,consumer

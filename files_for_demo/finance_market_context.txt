@@ -1,0 +1,7 @@
+Finance demo notes
+
+Use date as the time column, ticker as the entity column, close as the price column, and volume as the volume column.
+The benchmark_close column represents a simple benchmark series for relative risk context.
+The signal column is a toy long or flat signal for backtesting.
+High volume days may indicate attention, liquidity events, or news-driven movement.
+Missing volume should be flagged before downstream risk reporting.

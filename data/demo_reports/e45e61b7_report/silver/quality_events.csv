@@ -1,0 +1,13 @@
+record_id,dq_status,dq_review_required,dq_duplicate_row,dq_missing_visit_count,dq_negative_visit_count,dq_last_update_parse_failed
+1,ready,False,False,False,False,False
+2,review_required,True,False,False,False,True
+3,review_required,True,False,True,False,True
+4,ready,False,False,False,False,False
+5,ready,False,False,False,False,False
+6,review_required,True,False,False,True,False
+7,review_required,True,False,False,False,True
+8,review_required,True,False,True,False,False
+9,ready,False,False,False,False,False
+10,review_required,True,False,False,False,True
+11,review_required,True,False,True,False,False
+12,ready,False,False,False,False,False

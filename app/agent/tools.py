@@ -9,6 +9,12 @@ from app.analytics.anomalies import run_anomaly_detection
 from app.analytics.bayes import bayesian_ab_test
 from app.analytics.common import categorical_columns, find_time_column, first_numeric, numeric_columns
 from app.analytics.correlations import scan_correlations
+from app.analytics.data_quality import (
+    assess_freshness,
+    audit_schema_contract,
+    audit_standardization,
+    detect_entity_collisions,
+)
 from app.analytics.finance import (
     backtest_signal,
     calculate_returns,
@@ -55,6 +61,10 @@ PIPELINE_TOOL_NAMES = {
 TABULAR_GENERAL_TOOLS = {
     "validate_dataset",
     "profile_table",
+    "audit_schema_contract",
+    "assess_freshness",
+    "audit_standardization",
+    "detect_entity_collisions",
     "detect_anomalies",
     "segment_drivers",
     "scan_correlations",
@@ -204,6 +214,31 @@ def _resolve_tabular_args(
         }
     if tool_name == "profile_table":
         return {}
+    if tool_name == "audit_schema_contract":
+        required_columns = semantic_config.get("required_columns") or [
+            column for column in [time_col, entity_col, metric_col] if column
+        ]
+        return {
+            "required_columns": required_columns,
+            "expected_types": semantic_config.get("expected_types") or {},
+        }
+    if tool_name == "assess_freshness":
+        return {
+            "time_col": time_col,
+            "warn_after_days": analysis_params.get("warn_after_days", 2.0),
+            "error_after_days": analysis_params.get("error_after_days", 7.0),
+        }
+    if tool_name == "audit_standardization":
+        return {
+            "columns": semantic_config.get("standardization_columns") or categorical_columns(df)[:6],
+            "top_n": analysis_params.get("top_n", 5),
+        }
+    if tool_name == "detect_entity_collisions":
+        return {
+            "entity_columns": semantic_config.get("entity_columns") or [column for column in [entity_col, segment_col] if column],
+            "min_group_size": analysis_params.get("min_group_size", 2),
+            "top_n": analysis_params.get("top_n", 5),
+        }
     if tool_name == "detect_anomalies":
         return {
             "metric_col": metric_col,
@@ -344,6 +379,26 @@ def _run_validate(resource: pd.DataFrame, args: dict[str, Any], state: dict[str,
 
 
 
+def _run_schema_contract(resource: pd.DataFrame, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+    return audit_schema_contract(resource, **args)
+
+
+
+def _run_freshness(resource: pd.DataFrame, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+    return assess_freshness(resource, **args)
+
+
+
+def _run_standardization(resource: pd.DataFrame, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+    return audit_standardization(resource, **args)
+
+
+
+def _run_entity_collisions(resource: pd.DataFrame, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+    return detect_entity_collisions(resource, **args)
+
+
+
 def _run_profile_point_cloud(resource: PointCloudData, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
     cloud = state.get("raw_point_cloud", resource)
     return profile_point_cloud(cloud, **args)
@@ -352,8 +407,7 @@ def _run_profile_point_cloud(resource: PointCloudData, args: dict[str, Any], sta
 
 def _run_clean_point_cloud(resource: PointCloudData, args: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
     cloud = state.get("raw_point_cloud", resource)
-    result = clean_point_cloud(cloud, **args)
-    return result
+    return clean_point_cloud(cloud, **args)
 
 
 
@@ -413,6 +467,10 @@ def _run_measure_pipe_ovality(resource: PointCloudData, args: dict[str, Any], st
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     "validate_dataset": {"domain": "general", "runner": _run_validate, "description": "Run basic data quality checks."},
     "profile_table": {"domain": "general", "runner": _run_profile, "description": "Profile the dataset."},
+    "audit_schema_contract": {"domain": "general", "runner": _run_schema_contract, "description": "Check required columns, types, and schema-version drift."},
+    "assess_freshness": {"domain": "general", "runner": _run_freshness, "description": "Assess recency of the latest records."},
+    "audit_standardization": {"domain": "general", "runner": _run_standardization, "description": "Detect text-label variants and standardization opportunities."},
+    "detect_entity_collisions": {"domain": "general", "runner": _run_entity_collisions, "description": "Screen for duplicate-entity risk using normalized keys."},
     "detect_anomalies": {"domain": "general", "runner": lambda resource, args, state: run_anomaly_detection(resource, **args), "description": "Detect metric anomalies over time."},
     "segment_drivers": {"domain": "general", "runner": lambda resource, args, state: run_segment_analysis(resource, **args), "description": "Analyze segment contribution."},
     "scan_correlations": {"domain": "general", "runner": lambda resource, args, state: scan_correlations(resource, **args), "description": "Find correlated numeric drivers."},

@@ -1,0 +1,2 @@
+dent_id,depth,axial_start,axial_end,axial_length,circumferential_width,point_count,severity,centroid,threshold,units,fit_rmse
+dent_1,124.60571976475529,-4.380174991836735,3.162682208163265,7.5428572,602.4252161942967,49,severe,"[0.837318, 0.164918, 0.164647]",0.02,mm,124.5361182497442
